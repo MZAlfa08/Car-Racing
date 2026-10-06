@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <base target="_top">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Street Racer 3D V.3</title>
+
+  <?!= include('Style'); ?>
+
+
+  <!-- =================================================
+       FIX MOBILE SCROLL
+  ================================================= -->
+
+  <style>
+
+    html,
+    body {
+
+      width: 100%;
+      min-height: 100%;
+
+      margin: 0;
+      padding: 0;
+
+      /*
+        Izinkan halaman melakukan scroll
+      */
+      overflow-x: hidden;
+      overflow-y: auto;
+
+      /*
+        Supaya scrolling HP terasa normal
+      */
+      -webkit-overflow-scrolling: touch;
+
+      /*
+        Hindari efek zoom/geser aneh
+      */
+      touch-action: pan-y;
+
+    }
+
+
+    /*
+      Saat GAME aktif,
+      kita kunci scroll supaya layar game
+      tidak ikut bergerak ketika bermain.
+    */
+
+    body.game-active {
+
+      overflow: hidden;
+      touch-action: none;
+
+    }
+
+
+    /*
+      Menu tetap boleh di-scroll
+    */
+
+    #menu {
+
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+
+    }
+
+
+    /*
+      Result juga boleh di-scroll
+      jika isinya panjang
+    */
+
+    #result {
+
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+  <!-- =================================================
+       DATA
+  ================================================= -->
+
+  <?!= include('Data'); ?>
+
+
+  <!-- =================================================
+       MENU
+  ================================================= -->
+
+  <?!= include('Menu'); ?>
+
+
+  <!-- =================================================
+       GAME 3D
+  ================================================= -->
+
+  <?!= include('Game3D'); ?>
+
+
+  <!-- =================================================
+       GAME LOGIC
+  ================================================= -->
+
+  <?!= include('GameLogic'); ?>
+
+
+  <!-- =================================================
+       CONTROLS
+  ================================================= -->
+
+  <?!= include('Controls'); ?>
+
+
+  <!-- =================================================
+       MOBILE SCROLL CONTROL
+  ================================================= -->
+
+  <script>
+
+    /*
+     * Saat masuk game:
+     * scroll halaman dikunci.
+     *
+     * Saat kembali ke menu:
+     * scroll dibuka lagi.
+     */
+
+    function updatePageScroll(){
+
+      const menu =
+        document.getElementById("menu");
+
+      const game =
+        document.getElementById("game");
+
+      if(
+        game &&
+        game.classList.contains("active")
+      ){
+
+        document.body.classList.add(
+          "game-active"
+        );
+
+      }
+      else{
+
+        document.body.classList.remove(
+          "game-active"
+        );
+
+      }
+
+    }
+
+
+    /*
+     * Pantau perpindahan screen.
+     */
+
+    const screenObserver =
+      new MutationObserver(
+        function(){
+
+          updatePageScroll();
+
+        }
+      );
+
+
+    /*
+     * Pantau perubahan class
+     * pada elemen screen.
+     */
+
+    function startScreenObserver(){
+
+      const screens =
+        document.querySelectorAll(
+          ".screen"
+        );
+
+
+      screens.forEach(
+        screen => {
+
+          screenObserver.observe(
+            screen,
+            {
+              attributes: true,
+              attributeFilter: [
+                "class"
+              ]
+            }
+          );
+
+        }
+      );
+
+
+      updatePageScroll();
+
+    }
+
+
+    /*
+     * Jalankan setelah HTML selesai.
+     */
+
+    if(
+      document.readyState === "loading"
+    ){
+
+      document.addEventListener(
+        "DOMContentLoaded",
+        startScreenObserver
+      );
+
+    }
+    else{
+
+      startScreenObserver();
+
+    }
+
+  </script>
+
+</body>
+
+</html>
