@@ -1,0 +1,223 @@
+<script>
+
+/* =====================================================
+   POINTER BUTTON
+===================================================== */
+
+function holdButton(
+  element,
+  down,
+  up
+){
+
+  if(!element)
+    return;
+
+
+  element.addEventListener(
+    "pointerdown",
+    e => {
+
+      e.preventDefault();
+
+      element.setPointerCapture(
+        e.pointerId
+      );
+
+      down();
+
+    }
+  );
+
+
+  element.addEventListener(
+    "pointerup",
+    e => {
+
+      e.preventDefault();
+
+      up();
+
+    }
+  );
+
+
+  element.addEventListener(
+    "pointercancel",
+    e => {
+
+      up();
+
+    }
+  );
+
+
+  element.addEventListener(
+    "pointerleave",
+    e => {
+
+      if(
+        e.buttons === 0
+      ){
+
+        up();
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =====================================================
+   KEYBOARD
+===================================================== */
+
+document.addEventListener(
+  "keydown",
+  e => {
+
+    if(
+      e.key === "ArrowLeft" ||
+      e.key.toLowerCase() === "a"
+    ){
+
+      leftPressed = true;
+
+    }
+
+
+    if(
+      e.key === "ArrowRight" ||
+      e.key.toLowerCase() === "d"
+    ){
+
+      rightPressed = true;
+
+    }
+
+
+    if(
+      e.code === "Space"
+    ){
+
+      nitroPressed = true;
+
+    }
+
+  }
+);
+
+
+document.addEventListener(
+  "keyup",
+  e => {
+
+    if(
+      e.key === "ArrowLeft" ||
+      e.key.toLowerCase() === "a"
+    ){
+
+      leftPressed = false;
+
+    }
+
+
+    if(
+      e.key === "ArrowRight" ||
+      e.key.toLowerCase() === "d"
+    ){
+
+      rightPressed = false;
+
+    }
+
+
+    if(
+      e.code === "Space"
+    ){
+
+      nitroPressed = false;
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   LEFT
+===================================================== */
+
+holdButton(
+
+  document.getElementById(
+    "leftBtn"
+  ),
+
+  () => {
+
+    leftPressed = true;
+
+  },
+
+  () => {
+
+    leftPressed = false;
+
+  }
+
+);
+
+
+/* =====================================================
+   RIGHT
+===================================================== */
+
+holdButton(
+
+  document.getElementById(
+    "rightBtn"
+  ),
+
+  () => {
+
+    rightPressed = true;
+
+  },
+
+  () => {
+
+    rightPressed = false;
+
+  }
+
+);
+
+
+/* =====================================================
+   NITRO
+===================================================== */
+
+holdButton(
+
+  document.getElementById(
+    "nitroBtn"
+  ),
+
+  () => {
+
+    nitroPressed = true;
+
+  },
+
+  () => {
+
+    nitroPressed = false;
+
+  }
+
+);
+
+</script>
