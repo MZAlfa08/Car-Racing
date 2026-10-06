@@ -1,88 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 
 <head>
 
-  <base target="_top">
+  <meta charset="UTF-8">
 
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <title>Street Racer 3D V.3</title>
 
-  <?!= include('Style'); ?>
+  <!-- style.css dimasukkan oleh loader tepat sebelum <style id="pageFix"> -->
 
-
-  <!-- =================================================
-       FIX MOBILE SCROLL
-  ================================================= -->
-
-  <style>
+  <style id="pageFix">
 
     html,
     body {
-
       width: 100%;
       min-height: 100%;
-
       margin: 0;
       padding: 0;
-
-      /*
-        Izinkan halaman melakukan scroll
-      */
       overflow-x: hidden;
       overflow-y: auto;
-
-      /*
-        Supaya scrolling HP terasa normal
-      */
       -webkit-overflow-scrolling: touch;
-
-      /*
-        Hindari efek zoom/geser aneh
-      */
       touch-action: pan-y;
-
+      background: #050505;
     }
-
-
-    /*
-      Saat GAME aktif,
-      kita kunci scroll supaya layar game
-      tidak ikut bergerak ketika bermain.
-    */
 
     body.game-active {
-
       overflow: hidden;
       touch-action: none;
-
     }
-
-
-    /*
-      Menu tetap boleh di-scroll
-    */
 
     #menu {
-
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-
     }
 
-
-    /*
-      Result juga boleh di-scroll
-      jika isinya panjang
-    */
-
     #result {
-
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
+    }
 
+    #loadingBox {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #050505;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      font-size: 18px;
+      text-align: center;
+      padding: 20px;
     }
 
   </style>
@@ -92,39 +64,7 @@
 
 <body>
 
-  <!-- =================================================
-       DATA
-  ================================================= -->
-
-  <?!= include('Data'); ?>
-
-
-  <!-- =================================================
-       MENU
-  ================================================= -->
-
-  <?!= include('Menu'); ?>
-
-
-  <!-- =================================================
-       GAME 3D
-  ================================================= -->
-
-  <?!= include('Game3D'); ?>
-
-
-  <!-- =================================================
-       GAME LOGIC
-  ================================================= -->
-
-  <?!= include('GameLogic'); ?>
-
-
-  <!-- =================================================
-       CONTROLS
-  ================================================= -->
-
-  <?!= include('Controls'); ?>
+  <div id="loadingBox">Memuat game...</div>
 
 
   <!-- =================================================
@@ -133,109 +73,206 @@
 
   <script>
 
-    /*
-     * Saat masuk game:
-     * scroll halaman dikunci.
-     *
-     * Saat kembali ke menu:
-     * scroll dibuka lagi.
-     */
+    function updatePageScroll() {
 
-    function updatePageScroll(){
+      const game = document.getElementById("game");
 
-      const menu =
-        document.getElementById("menu");
-
-      const game =
-        document.getElementById("game");
-
-      if(
-        game &&
-        game.classList.contains("active")
-      ){
-
-        document.body.classList.add(
-          "game-active"
-        );
-
-      }
-      else{
-
-        document.body.classList.remove(
-          "game-active"
-        );
-
+      if (game && game.classList.contains("active")) {
+        document.body.classList.add("game-active");
+      } else {
+        document.body.classList.remove("game-active");
       }
 
     }
 
+    const screenObserver = new MutationObserver(function () {
+      updatePageScroll();
+    });
 
-    /*
-     * Pantau perpindahan screen.
-     */
+    function startScreenObserver() {
 
-    const screenObserver =
-      new MutationObserver(
-        function(){
-
-          updatePageScroll();
-
-        }
-      );
-
-
-    /*
-     * Pantau perubahan class
-     * pada elemen screen.
-     */
-
-    function startScreenObserver(){
-
-      const screens =
-        document.querySelectorAll(
-          ".screen"
-        );
-
-
-      screens.forEach(
-        screen => {
-
-          screenObserver.observe(
-            screen,
-            {
-              attributes: true,
-              attributeFilter: [
-                "class"
-              ]
-            }
-          );
-
-        }
-      );
-
+      document.querySelectorAll(".screen").forEach(function (screen) {
+        screenObserver.observe(screen, {
+          attributes: true,
+          attributeFilter: ["class"]
+        });
+      });
 
       updatePageScroll();
 
     }
 
+  </script>
 
-    /*
-     * Jalankan setelah HTML selesai.
-     */
 
-    if(
-      document.readyState === "loading"
-    ){
+  <!-- =================================================
+       LOADER
+       Pengganti <?!= include('...'); ?> milik Apps Script.
+       File dimuat berurutan: Style, Data, Menu, Game3D,
+       GameLogic, Controls.
+  ================================================= -->
 
-      document.addEventListener(
-        "DOMContentLoaded",
-        startScreenObserver
-      );
+  <script>
+
+    async function loadText(url) {
+
+      const response = await fetch(url, { cache: "no-cache" });
+
+      if (!response.ok) {
+        throw new Error("Gagal memuat " + url + " (status " + response.status + ")");
+      }
+
+      return response.text();
 
     }
-    else{
 
-      startScreenObserver();
+
+    function parseHTML(html) {
+
+      const tpl = document.createElement("template");
+      tpl.innerHTML = html;
+      return tpl.content;
+
+    }
+
+
+    /* Jalankan semua <script> (satu per satu, berurutan) */
+
+    async function runScripts(scripts) {
+
+      for (const old of scripts) {
+
+        const s = document.createElement("script");
+
+        for (const attr of old.attributes) {
+          s.setAttribute(attr.name, attr.value);
+        }
+
+        if (old.src) {
+
+          await new Promise(function (resolve, reject) {
+            s.onload = resolve;
+            s.onerror = function () {
+              reject(new Error("Gagal memuat script: " + old.src));
+            };
+            document.body.appendChild(s);
+          });
+
+        } else {
+
+          s.textContent = old.textContent;
+          document.body.appendChild(s);
+
+        }
+
+      }
+
+    }
+
+
+    /* Muat file HTML: elemen biasa ditempel dulu, lalu script dijalankan */
+
+    async function includeHTML(url) {
+
+      const fragment = parseHTML(await loadText(url));
+
+      const scripts = Array.from(fragment.querySelectorAll("script"));
+
+      scripts.forEach(function (s) { s.remove(); });
+
+      document.body.appendChild(fragment);
+
+      await runScripts(scripts);
+
+    }
+
+
+    /* Muat CSS (boleh berisi tag <style> atau CSS murni) */
+
+    async function includeStyle(url) {
+
+      const css = await loadText(url);
+
+      const anchor = document.getElementById("pageFix");
+
+      if (/<style[\s>]/i.test(css)) {
+
+        document.head.insertBefore(parseHTML(css), anchor);
+
+      } else {
+
+        const style = document.createElement("style");
+        style.textContent = css;
+        document.head.insertBefore(style, anchor);
+
+      }
+
+    }
+
+
+    async function bootGame() {
+
+      try {
+
+        await includeStyle("style.css");
+
+        await includeHTML("data.html");
+        await includeHTML("menu.html");
+        await includeHTML("game3d.html");
+        await includeHTML("gamelogic.html");
+        await includeHTML("controls.html");
+
+        startScreenObserver();
+
+        const box = document.getElementById("loadingBox");
+        if (box) box.remove();
+
+      } catch (error) {
+
+        console.error(error);
+
+        const box = document.getElementById("loadingBox");
+
+        if (box) {
+          box.innerHTML =
+            "<div>⚠️ Game gagal dimuat.<br><br>" +
+            String(error.message) +
+            "<br><br>Pastikan semua file ada di folder yang sama " +
+            "dan buka lewat GitHub Pages / server, bukan langsung dari file.</div>";
+        }
+
+      }
+
+    }
+
+    bootGame();
+
+  </script>
+
+
+  <!-- =================================================
+       VISUAL MAP (siang / malam)
+       Fungsi ini sebelumnya tidak ada di file kamu.
+  ================================================= -->
+
+  <script>
+
+    function applyMapVisuals() {
+
+      const map = maps[save.selectedMap];
+
+      if (!map || !scene) return;
+
+      let sky = 0x80cbed;
+
+      if (!map.day) {
+        sky = 0x050816;
+      } else if (map.environment === "desert") {
+        sky = 0xf2d49b;
+      }
+
+      scene.background = new THREE.Color(sky);
+      scene.fog = new THREE.Fog(sky, 70, 360);
 
     }
 
