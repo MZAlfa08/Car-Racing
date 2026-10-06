@@ -622,14 +622,49 @@ button {
     font-size: 26px;
   }
 
+    /* Daftar kartu (Garage & Map) jadi bisa digeser ke samping */
+
   .cards {
-    grid-template-columns:
-      repeat(2,1fr);
+    --card-w: min(250px, 68vw);   /* lebar 1 kartu */
+
+    display: flex;
+    gap: 16px;
+    padding: 14px 0 22px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x pan-y;
+
+    scrollbar-width: none;
+  }
+
+  .cards::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cards .card {
+    flex: 0 0 var(--card-w);
+    scroll-snap-align: center;
+    padding: 18px;
+  }
+
+  /* Ruang kosong di ujung supaya kartu pertama & terakhir bisa berada di tengah */
+
+  .cards .card:first-child {
+    margin-left: calc((100% - var(--card-w)) / 2);
+  }
+
+  .cards .card:last-child {
+    margin-right: calc((100% - var(--card-w)) / 2);
   }
 
   .car-preview {
-    height: 80px;
-    font-size: 48px;
+    height: 100px;
+    font-size: 60px;
   }
 
   .control {
