@@ -1,14 +1,16 @@
 <script>
 
 /* =====================================================
-   PENGATURAN KECEPATAN (ubah angka di sini)
+   PENGATURAN KECEPATAN
 ===================================================== */
 
-const SPEED_BOOST = 8;          // pengali kecepatan seluruh game (sebelumnya 1)
-const NITRO_MULT = 10;           // kekuatan nitro (sebelumnya 1.8)
-const UPGRADE_SPEED_BONUS = 10;    // tambahan per level upgrade speed (sebelumnya 1.5)
-const MAP_DIFFICULTY_BONUS = 3.15; // map lebih sulit = lebih cepat
-const DIST_SCALE = 5.5;           // jarak balapan dikali ini agar durasi tetap seimbang
+const SPEED_BOOST = 1.35;           // multiplier kecepatan utama
+const NITRO_MULT = 1.8;             // tambahan kecepatan saat nitro
+const UPGRADE_SPEED_BONUS = 2.0;    // bonus speed setiap level upgrade
+const MAP_DIFFICULTY_BONUS = 0.45;  // pengaruh tingkat kesulitan map
+
+const DIST_SCALE = 5.5;
+
 const FINISH_DISTANCE = 15000 * DIST_SCALE;
 const LAP_DISTANCE = FINISH_DISTANCE / 3;
 const LANES = [-5, -2.5, 0, 2.5, 5];
@@ -307,14 +309,22 @@ function updateGame(dt) {
 
   /* ---------- SPEED ---------- */
 
-  let speed = map.baseSpeed;
+let speed = map.baseSpeed;
 
-  speed += car.speed * 3.4;
-  speed += save.upgrades.speed * UPGRADE_SPEED_BONUS;
+/* Bonus dari mobil */
+speed += car.speed * 3.4;
 
-  speed *= 1 + speedProgress * 3.85;
+/* Bonus upgrade */
+speed += save.upgrades.speed * UPGRADE_SPEED_BONUS;
 
-  speed *= SPEED_BOOST * (1 + (map.difficulty - 1) * MAP_DIFFICULTY_BONUS);
+/* Kecepatan meningkat secara bertahap sepanjang balapan */
+speed *= 1 + speedProgress * 1.5;
+
+/* Bonus kecepatan global */
+speed *= SPEED_BOOST;
+
+/* Bonus berdasarkan tingkat kesulitan map */
+speed *= 1 + (map.difficulty - 1) * MAP_DIFFICULTY_BONUS;
 
   /* ---------- NITRO ---------- */
 
@@ -393,7 +403,7 @@ function updateGame(dt) {
 
     const prevZ = enemy.position.z;
 
-    enemy.position.z += speed * dt * 0.75;
+    enemy.position.z += speed * dt;
 
     const lane =
       typeof enemy.userData?.laneOffset === "number"
