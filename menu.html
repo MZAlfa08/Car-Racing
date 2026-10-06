@@ -1,0 +1,1723 @@
+<!-- =========================================================
+     MENU UTAMA
+========================================================= -->
+
+<div id="menu" class="screen active">
+
+  <div class="menu-content">
+
+    <div class="money">
+      💰 <span id="menuMoney">5000</span>
+    </div>
+
+    <div class="logo">
+      STREET <span>RACER</span>
+    </div>
+
+    <div class="subtitle">
+      3D RACING
+    </div>
+
+    <button class="menu-btn"
+            onclick="showGarage()">
+      🚗 GARAGE
+    </button>
+
+    <button class="menu-btn"
+            onclick="showMaps()">
+      🗺️ PILIH MAP
+    </button>
+
+    <button class="menu-btn"
+            onclick="showUpgrade()">
+      🔧 UPGRADE
+    </button>
+
+    <button class="menu-btn"
+            onclick="startGame()">
+      🏁 MULAI BALAP
+    </button>
+    <br>
+    <p>Dibuat oleh M.Zhafran Alfatih</p>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     GARAGE
+========================================================= -->
+
+<div id="garage" class="screen">
+
+  <div class="panel">
+
+    <button class="back"
+            onclick="showScreen('menu')">
+      ← Kembali
+    </button>
+
+    <h2 class="title">
+      🚗 GARAGE
+    </h2>
+
+    <div class="money">
+      💰 <span id="garageMoney">0</span>
+    </div>
+
+    <div id="carList"
+         class="cards">
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     PILIH MAP
+========================================================= -->
+
+<div id="maps" class="screen">
+
+  <div class="panel">
+
+    <button class="back"
+            onclick="showScreen('menu')">
+      ← Kembali
+    </button>
+
+    <h2 class="title">
+      🗺️ PILIH MAP
+    </h2>
+
+    <div id="mapList"
+         class="cards">
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     UPGRADE
+========================================================= -->
+
+<div id="upgrade" class="screen">
+
+  <div class="panel">
+
+    <button class="back"
+            onclick="showScreen('menu')">
+      ← Kembali
+    </button>
+
+    <h2 class="title">
+      🔧 UPGRADE MOBIL
+    </h2>
+
+    <div id="upgradeList">
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     GAME
+========================================================= -->
+
+<div id="game" class="screen">
+
+  <div id="threeContainer"></div>
+
+
+  <!-- ================= HUD ================= -->
+
+  <div id="hud">
+
+    <div class="hud-box">
+
+      <div class="hud-label">
+        SPEED
+      </div>
+
+      <div class="hud-value">
+        <span id="speedText">0</span>
+        KM/H
+      </div>
+
+    </div>
+
+
+    <div class="hud-box">
+
+      <div class="hud-label">
+        LAP
+      </div>
+
+      <div class="hud-value"
+           id="lapText">
+        1 / 3
+      </div>
+
+    </div>
+
+
+    <div class="hud-box">
+
+      <div class="hud-label">
+        NITRO
+      </div>
+
+      <div id="nitroBar">
+        <div id="nitroFill"></div>
+      </div>
+
+    </div>
+
+
+    <div class="hud-box">
+
+      <div class="hud-label">
+        DISTANCE
+      </div>
+
+      <div class="hud-value">
+        <span id="scoreText">0</span>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       PAUSE BUTTON
+       DIPINDAH KE KANAN ATAS
+  ====================================================== -->
+
+  <button id="pauseBtn"
+          class="pause-side-btn"
+          onclick="togglePause()">
+
+    ⏸️
+
+  </button>
+
+
+  <!-- =====================================================
+       CONTROLS
+  ====================================================== -->
+
+  <div id="controls">
+
+    <div class="control-group">
+
+      <button class="control"
+              id="leftBtn">
+
+        ◀
+
+      </button>
+
+
+      <button class="control"
+              id="rightBtn">
+
+        ▶
+
+      </button>
+
+    </div>
+
+
+    <div class="control-group">
+
+      <button class="control nitro"
+              id="nitroBtn">
+
+        ⚡ NITRO
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     PAUSE SCREEN
+========================================================= -->
+
+<div id="pauseScreen"
+     class="screen">
+
+  <div class="pause-box">
+
+    <h2>
+      ⏸️ GAME PAUSED
+    </h2>
+
+    <p>
+      Balapan dijeda
+    </p>
+
+
+    <button class="menu-btn"
+            onclick="togglePause()">
+
+      ▶ LANJUTKAN
+
+    </button>
+
+
+    <button class="menu-btn"
+            onclick="backToHome()">
+
+      🏠 KEMBALI KE HOME
+
+    </button>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     RESULT
+========================================================= -->
+
+<div id="result"
+     class="screen">
+
+  <div class="result-box">
+
+    <div class="result-title"
+         id="resultTitle">
+
+      🏆 MENANG!
+
+    </div>
+
+
+    <div id="resultScore">
+
+      Jarak: 15000
+
+    </div>
+
+
+    <div class="reward">
+
+      💰 +
+
+      <span id="rewardMoney">
+        0
+      </span>
+
+    </div>
+
+
+    <button class="menu-btn"
+            onclick="showScreen('menu')">
+
+      MENU UTAMA
+
+    </button>
+
+
+    <button class="menu-btn"
+            onclick="startGame()">
+
+      🏁 MAIN LAGI
+
+    </button>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     CUSTOM GAME MODAL
+========================================================= -->
+
+<div id="gameModal"
+     class="game-modal">
+
+  <div class="game-modal-box">
+
+    <div id="modalIcon"
+         class="modal-icon">
+
+      ⚠️
+
+    </div>
+
+
+    <div id="modalTitle"
+         class="modal-title">
+
+      PERINGATAN
+
+    </div>
+
+
+    <div id="modalMessage"
+         class="modal-message">
+
+      Pesan
+
+    </div>
+
+
+    <button class="modal-btn"
+            onclick="closeGameModal()">
+
+      OK
+
+    </button>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     STYLE TAMBAHAN MENU
+========================================================= -->
+
+<style>
+
+.pause-side-btn{
+
+  position:absolute;
+
+  top:22px;
+
+  right:22px;
+
+  z-index:100;
+
+  width:48px;
+
+  height:48px;
+
+  border-radius:50%;
+
+  border:2px solid rgba(255,255,255,.25);
+
+  background:rgba(15,23,42,.88);
+
+  color:white;
+
+  font-size:20px;
+
+  cursor:pointer;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  box-shadow:
+    0 5px 18px rgba(0,0,0,.4);
+
+  backdrop-filter:blur(8px);
+
+}
+
+
+.pause-side-btn:hover{
+
+  transform:scale(1.08);
+
+}
+
+
+.pause-side-btn:active{
+
+  transform:scale(.94);
+
+}
+
+
+/* MOBILE */
+
+@media(max-width:600px){
+
+  .pause-side-btn{
+
+    top:12px;
+
+    right:12px;
+
+    width:42px;
+
+    height:42px;
+
+    font-size:17px;
+
+  }
+
+}
+
+</style>
+
+
+<script>
+
+/* =========================================================
+   SCREEN SYSTEM
+========================================================= */
+
+function showScreen(id){
+
+  const screens =
+    document.querySelectorAll(".screen");
+
+
+  screens.forEach(
+    screen => {
+
+      screen.classList.remove(
+        "active"
+      );
+
+    }
+  );
+
+
+  const target =
+    document.getElementById(id);
+
+
+  if(target){
+
+    target.classList.add(
+      "active"
+    );
+
+  }
+
+
+  updateMoney();
+
+}
+
+
+/* =========================================================
+   MONEY
+========================================================= */
+
+function updateMoney(){
+
+  const menuMoney =
+    document.getElementById(
+      "menuMoney"
+    );
+
+
+  if(menuMoney){
+
+    menuMoney.textContent =
+      save.money;
+
+  }
+
+
+  const garageMoney =
+    document.getElementById(
+      "garageMoney"
+    );
+
+
+  if(garageMoney){
+
+    garageMoney.textContent =
+      save.money;
+
+  }
+
+}
+
+
+/* =========================================================
+   CUSTOM MODAL
+========================================================= */
+
+function showGameModal(
+  title,
+  message,
+  icon = "⚠️"
+){
+
+  const modal =
+    document.getElementById(
+      "gameModal"
+    );
+
+
+  const modalTitle =
+    document.getElementById(
+      "modalTitle"
+    );
+
+
+  const modalMessage =
+    document.getElementById(
+      "modalMessage"
+    );
+
+
+  const modalIcon =
+    document.getElementById(
+      "modalIcon"
+    );
+
+
+  if(!modal)
+    return;
+
+
+  modalTitle.textContent =
+    title;
+
+
+  modalMessage.textContent =
+    message;
+
+
+  modalIcon.textContent =
+    icon;
+
+
+  modal.classList.add(
+    "active"
+  );
+
+}
+
+
+function closeGameModal(){
+
+  const modal =
+    document.getElementById(
+      "gameModal"
+    );
+
+
+  if(modal){
+
+    modal.classList.remove(
+      "active"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   MENU
+========================================================= */
+
+function showGarage(){
+
+  renderCars();
+
+  showScreen(
+    "garage"
+  );
+
+}
+
+
+function showMaps(){
+
+  renderMaps();
+
+  showScreen(
+    "maps"
+  );
+
+}
+
+
+function showUpgrade(){
+
+  renderUpgrades();
+
+  showScreen(
+    "upgrade"
+  );
+
+}
+
+
+/* =========================================================
+   GARAGE
+========================================================= */
+
+function renderCars(){
+
+  const list =
+    document.getElementById(
+      "carList"
+    );
+
+
+  if(!list)
+    return;
+
+
+  list.innerHTML = "";
+
+
+  cars.forEach(
+    car => {
+
+      const owned =
+        save.ownedCars.includes(
+          car.id
+        );
+
+
+      const selected =
+        save.selectedCar ===
+        car.id;
+
+
+      const div =
+        document.createElement(
+          "div"
+        );
+
+
+      div.className =
+        "card" +
+        (
+          selected
+          ? " selected"
+          : ""
+        );
+
+
+      const color =
+        car.color
+          .toString(16)
+          .padStart(
+            6,
+            "0"
+          );
+
+
+      div.innerHTML = `
+
+        <div
+          class="car-preview"
+          style="
+            color:#${color}
+          "
+        >
+          🚘
+        </div>
+
+
+        <h3>
+          ${car.name}
+        </h3>
+
+
+        ${
+          owned
+
+          ?
+
+          `
+          <div
+            style="
+              color:#22c55e;
+              font-weight:bold;
+            "
+          >
+            ✓ DIMILIKI
+          </div>
+          `
+
+          :
+
+          `
+          <div class="price">
+            💰 ${car.price}
+          </div>
+          `
+        }
+
+
+        <div class="stat">
+
+          <div class="stat-name">
+
+            <span>
+              Speed
+            </span>
+
+            <span>
+              ${car.speed}/4
+            </span>
+
+          </div>
+
+
+          <div class="bar">
+
+            <div
+              class="bar-fill"
+              style="
+                width:${car.speed * 25}%
+              "
+            ></div>
+
+          </div>
+
+        </div>
+
+
+        <div class="stat">
+
+          <div class="stat-name">
+
+            <span>
+              Handling
+            </span>
+
+            <span>
+              ${car.handling}/4
+            </span>
+
+          </div>
+
+
+          <div class="bar">
+
+            <div
+              class="bar-fill"
+              style="
+                width:${car.handling * 25}%
+              "
+            ></div>
+
+          </div>
+
+        </div>
+
+
+        <div class="stat">
+
+          <div class="stat-name">
+
+            <span>
+              Brake
+            </span>
+
+            <span>
+              ${car.brake}/4
+            </span>
+
+          </div>
+
+
+          <div class="bar">
+
+            <div
+              class="bar-fill"
+              style="
+                width:${car.brake * 25}%
+              "
+            ></div>
+
+          </div>
+
+        </div>
+
+
+        <div class="stat">
+
+          <div class="stat-name">
+
+            <span>
+              Nitro
+            </span>
+
+            <span>
+              ${car.nitro}/4
+            </span>
+
+          </div>
+
+
+          <div class="bar">
+
+            <div
+              class="bar-fill"
+              style="
+                width:${car.nitro * 25}%
+              "
+            ></div>
+
+          </div>
+
+        </div>
+
+
+        <br>
+
+
+        ${
+          owned
+
+          ?
+
+          `
+          <button
+            class="small-btn"
+            onclick="
+              selectCar(${car.id})
+            "
+          >
+
+            ${
+              selected
+              ? "✓ DIPILIH"
+              : "PILIH"
+            }
+
+          </button>
+          `
+
+          :
+
+          `
+          <button
+            class="small-btn"
+            onclick="
+              buyCar(${car.id})
+            "
+          >
+
+            BELI 💰 ${car.price}
+
+          </button>
+          `
+        }
+
+      `;
+
+
+      list.appendChild(
+        div
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   SELECT CAR
+========================================================= */
+
+function selectCar(id){
+
+  const car =
+    cars.find(
+      x => x.id === id
+    );
+
+
+  if(!car)
+    return;
+
+
+  if(
+    !save.ownedCars.includes(
+      id
+    )
+  ){
+
+    showGameModal(
+      "MOBIL TERKUNCI",
+      "Mobil ini belum kamu miliki.",
+      "🔒"
+    );
+
+    return;
+
+  }
+
+
+  save.selectedCar =
+    id;
+
+
+  saveGame();
+
+
+  renderCars();
+
+
+  showGameModal(
+    "MOBIL DIPILIH",
+    car.name +
+    " siap digunakan untuk balapan!",
+    "🚗"
+  );
+
+}
+
+
+/* =========================================================
+   BUY CAR
+========================================================= */
+
+function buyCar(id){
+
+  const car =
+    cars.find(
+      x => x.id === id
+    );
+
+
+  if(!car)
+    return;
+
+
+  if(
+    save.ownedCars.includes(
+      id
+    )
+  ){
+
+    selectCar(id);
+
+    return;
+
+  }
+
+
+  if(
+    save.money <
+    car.price
+  ){
+
+    showGameModal(
+      "UANG TIDAK CUKUP",
+      "Uang kamu belum cukup untuk membeli " +
+      car.name +
+      ".",
+      "💰"
+    );
+
+    return;
+
+  }
+
+
+  save.money -=
+    car.price;
+
+
+  save.ownedCars.push(
+    id
+  );
+
+
+  save.selectedCar =
+    id;
+
+
+  saveGame();
+
+
+  renderCars();
+
+
+  updateMoney();
+
+
+  showGameModal(
+    "MOBIL BERHASIL DIBELI",
+    car.name +
+    " sekarang menjadi milikmu!",
+    "🚘"
+  );
+
+}
+
+
+/* =========================================================
+   MAP
+========================================================= */
+
+function renderMaps(){
+
+  const list =
+    document.getElementById(
+      "mapList"
+    );
+
+
+  if(!list)
+    return;
+
+
+  list.innerHTML = "";
+
+
+  maps.forEach(
+    map => {
+
+      const selected =
+        save.selectedMap ===
+        map.id;
+
+
+      const div =
+        document.createElement(
+          "div"
+        );
+
+
+      div.className =
+        "card" +
+        (
+          selected
+          ? " selected"
+          : ""
+        );
+
+
+      const stars =
+        "⭐".repeat(
+          Math.max(
+            1,
+            Math.round(
+              map.difficulty
+            )
+          )
+        );
+
+
+      div.innerHTML = `
+
+        <div
+          style="
+            font-size:70px;
+            line-height:1;
+            margin-bottom:10px;
+          "
+        >
+          ${map.icon}
+        </div>
+
+
+        <h3>
+          ${map.name}
+        </h3>
+
+
+        <p
+          style="
+            color:#94a3b8;
+          "
+        >
+          ${map.description}
+        </p>
+
+
+        <p>
+
+          Kesulitan:
+
+          ${stars}
+
+        </p>
+
+
+        <button
+          class="small-btn"
+          onclick="
+            selectMap(${map.id})
+          "
+        >
+
+          ${
+            selected
+            ? "✓ DIPILIH"
+            : "PILIH"
+          }
+
+        </button>
+
+      `;
+
+
+      list.appendChild(
+        div
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   SELECT MAP
+========================================================= */
+
+function selectMap(id){
+
+  const map =
+    maps.find(
+      x => x.id === id
+    );
+
+
+  if(!map)
+    return;
+
+
+  save.selectedMap =
+    id;
+
+
+  saveGame();
+
+
+  renderMaps();
+
+
+  showGameModal(
+    "MAP DIPILIH",
+    map.name +
+    " siap digunakan untuk balapan!",
+    map.icon || "🗺️"
+  );
+
+}
+
+
+/* =========================================================
+   UPGRADE DATA
+========================================================= */
+
+const upgradeData = [
+
+  {
+    key: "speed",
+
+    name: "🏎️ ENGINE",
+
+    description:
+      "Meningkatkan kecepatan maksimal"
+
+  },
+
+  {
+    key: "handling",
+
+    name: "🎮 HANDLING",
+
+    description:
+      "Mobil lebih mudah dikendalikan"
+
+  },
+
+  {
+    key: "brake",
+
+    name: "🛑 BRAKE",
+
+    description:
+      "Meningkatkan kemampuan pengereman"
+
+  },
+
+  {
+    key: "nitro",
+
+    name: "⚡ NITRO",
+
+    description:
+      "Nitro lebih kuat dan tahan lama"
+
+  }
+
+];
+
+
+/* =========================================================
+   RENDER UPGRADES
+========================================================= */
+
+function renderUpgrades(){
+
+  const list =
+    document.getElementById(
+      "upgradeList"
+    );
+
+
+  if(!list)
+    return;
+
+
+  list.innerHTML = "";
+
+
+  upgradeData.forEach(
+    item => {
+
+      const level =
+        save.upgrades[
+          item.key
+        ] || 0;
+
+
+      const cost =
+        1000 +
+        level * 1500;
+
+
+      const div =
+        document.createElement(
+          "div"
+        );
+
+
+      div.className =
+        "card";
+
+
+      div.style.marginBottom =
+        "15px";
+
+
+      div.innerHTML = `
+
+        <h2>
+          ${item.name}
+        </h2>
+
+
+        <p
+          style="
+            color:#94a3b8;
+          "
+        >
+          ${item.description}
+        </p>
+
+
+        <div
+          style="
+            font-size:18px;
+            margin:15px;
+            color:#facc15;
+            font-weight:bold;
+          "
+        >
+          LEVEL ${level}/5
+        </div>
+
+
+        <div
+          class="bar"
+          style="
+            height:12px;
+          "
+        >
+
+          <div
+            class="bar-fill"
+            style="
+              width:${level * 20}%;
+            "
+          ></div>
+
+        </div>
+
+
+        <br>
+
+
+        ${
+          level < 5
+
+          ?
+
+          `
+          <button
+            class="small-btn"
+            onclick="
+              upgrade('${item.key}')
+            "
+          >
+
+            UPGRADE 💰 ${cost}
+
+          </button>
+          `
+
+          :
+
+          `
+          <div
+            style="
+              color:#22c55e;
+              font-weight:bold;
+            "
+          >
+
+            ✓ MAX LEVEL
+
+          </div>
+          `
+        }
+
+      `;
+
+
+      list.appendChild(
+        div
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   UPGRADE
+========================================================= */
+
+function upgrade(key){
+
+  const level =
+    save.upgrades[key] || 0;
+
+
+  if(level >= 5){
+
+    showGameModal(
+      "SUDAH MAKSIMAL",
+      "Upgrade ini sudah mencapai level maksimum.",
+      "🔧"
+    );
+
+    return;
+
+  }
+
+
+  const cost =
+    1000 +
+    level * 1500;
+
+
+  if(
+    save.money <
+    cost
+  ){
+
+    showGameModal(
+      "UANG TIDAK CUKUP",
+      "Kamu membutuhkan 💰 " +
+      cost +
+      " untuk upgrade ini.",
+      "💰"
+    );
+
+    return;
+
+  }
+
+
+  save.money -=
+    cost;
+
+
+  save.upgrades[key] =
+    level + 1;
+
+
+  saveGame();
+
+
+  renderUpgrades();
+
+
+  updateMoney();
+
+
+  showGameModal(
+    "UPGRADE BERHASIL",
+    "Upgrade " +
+    key.toUpperCase() +
+    " sekarang level " +
+    (level + 1) +
+    "/5.",
+    "🔧"
+  );
+
+}
+
+
+/* =========================================================
+   PAUSE
+========================================================= */
+
+function togglePause(){
+
+  const game =
+    document.getElementById(
+      "game"
+    );
+
+
+  const pause =
+    document.getElementById(
+      "pauseScreen"
+    );
+
+
+  if(
+    !game ||
+    !pause
+  )
+    return;
+
+
+  const isPaused =
+    pause.classList.contains(
+      "active"
+    );
+
+
+  if(isPaused){
+
+    pause.classList.remove(
+      "active"
+    );
+
+
+    game.classList.add(
+      "active"
+    );
+
+
+    window.gamePaused =
+      false;
+
+  }
+
+  else{
+
+    if(
+      typeof gameRunning !==
+      "undefined" &&
+      !gameRunning
+    ){
+
+      return;
+
+    }
+
+
+    game.classList.remove(
+      "active"
+    );
+
+
+    pause.classList.add(
+      "active"
+    );
+
+
+    window.gamePaused =
+      true;
+
+  }
+
+}
+
+
+/* =========================================================
+   KEMBALI KE HOME
+========================================================= */
+
+function backToHome(){
+
+  window.gamePaused =
+    false;
+
+
+  if(
+    typeof gameRunning !==
+    "undefined"
+  ){
+
+    gameRunning =
+      false;
+
+  }
+
+
+  const pause =
+    document.getElementById(
+      "pauseScreen"
+    );
+
+
+  if(pause){
+
+    pause.classList.remove(
+      "active"
+    );
+
+  }
+
+
+  showScreen(
+    "menu"
+  );
+
+}
+
+
+/* =========================================================
+   GAME OVER
+========================================================= */
+
+function showGameOver(
+  reason = "Mobil kamu mengalami tabrakan."
+){
+
+  if(
+    typeof gameRunning !==
+    "undefined"
+  ){
+
+    gameRunning =
+      false;
+
+  }
+
+
+  window.gamePaused =
+    false;
+
+
+  document.getElementById(
+    "resultTitle"
+  ).textContent =
+    "💥 GAME OVER";
+
+
+  document.getElementById(
+    "resultScore"
+  ).textContent =
+    "Jarak: " +
+    Math.floor(
+      typeof score !== "undefined"
+      ? score
+      : 0
+    );
+
+
+  document.getElementById(
+    "rewardMoney"
+  ).textContent =
+    "0";
+
+
+  showScreen(
+    "result"
+  );
+
+
+  /* Pesan tambahan menggunakan modal
+     setelah layar Game Over tampil */
+
+  setTimeout(
+    () => {
+
+      showGameModal(
+        "GAME OVER",
+        reason,
+        "💥"
+      );
+
+    },
+    150
+  );
+
+}
+
+
+/* =========================================================
+   RESULT MENANG
+========================================================= */
+
+function showWinResult(
+  reward = 0
+){
+
+  document.getElementById(
+    "resultTitle"
+  ).textContent =
+    "🏆 MENANG!";
+
+
+  document.getElementById(
+    "resultScore"
+  ).textContent =
+    "Jarak: " +
+    Math.floor(
+      typeof score !== "undefined"
+      ? score
+      : 0
+    );
+
+
+  document.getElementById(
+    "rewardMoney"
+  ).textContent =
+    reward;
+
+
+  showScreen(
+    "result"
+  );
+
+}
+
+
+/* =========================================================
+   INITIAL MONEY
+========================================================= */
+
+updateMoney();
+
+</script>
