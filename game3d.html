@@ -1,0 +1,2759 @@
+<!-- =====================================================
+     GAME 3D ENGINE
+===================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+<script>
+
+let scene;
+let camera;
+let renderer;
+let clock;
+
+let playerCar = null;
+
+let roadSegments = [];
+let scenery = [];
+let enemies = [];
+let particles = [];
+
+let train = null;
+
+let threeInitialized = false;
+
+
+/* =====================================================
+   INIT 3D
+===================================================== */
+
+function init3D(){
+
+  if(threeInitialized){
+
+    resizeGame();
+
+    return;
+
+  }
+
+  threeInitialized = true;
+
+  const container =
+    document.getElementById("threeContainer");
+
+
+  scene =
+    new THREE.Scene();
+
+
+  /* LANGIT */
+
+  scene.background =
+    new THREE.Color(0x80cbed);
+
+
+  scene.fog =
+    new THREE.Fog(
+      0x80cbed,
+      70,
+      360
+    );
+
+
+  /* CAMERA */
+
+  camera =
+    new THREE.PerspectiveCamera(
+      65,
+      container.clientWidth /
+      container.clientHeight,
+      0.1,
+      600
+    );
+
+
+  camera.position.set(
+    0,
+    5,
+    10
+  );
+
+
+  /* RENDERER */
+
+  renderer =
+    new THREE.WebGLRenderer({
+      antialias:true
+    });
+
+
+  renderer.setPixelRatio(
+    Math.min(
+      window.devicePixelRatio,
+      2
+    )
+  );
+
+
+  renderer.setSize(
+    container.clientWidth,
+    container.clientHeight
+  );
+
+
+  renderer.shadowMap.enabled =
+    true;
+
+  renderer.shadowMap.type =
+    THREE.PCFSoftShadowMap;
+
+
+  container.innerHTML = "";
+
+  container.appendChild(
+    renderer.domElement
+  );
+
+
+  /* LIGHT */
+
+  const hemi =
+    new THREE.HemisphereLight(
+      0xffffff,
+      0x405060,
+      1.5
+    );
+
+  scene.add(hemi);
+
+
+  const sun =
+    new THREE.DirectionalLight(
+      0xffffff,
+      2
+    );
+
+  sun.position.set(
+    -20,
+    40,
+    20
+  );
+
+  sun.castShadow = true;
+
+  scene.add(sun);
+
+
+  clock =
+    new THREE.Clock();
+
+
+  window.addEventListener(
+    "resize",
+    resizeGame
+  );
+
+}
+
+
+/* =====================================================
+   RESIZE
+===================================================== */
+
+function resizeGame(){
+
+  if(
+    !renderer ||
+    !camera
+  )
+    return;
+
+
+  const container =
+    document.getElementById(
+      "threeContainer"
+    );
+
+
+  if(!container)
+    return;
+
+
+  const width =
+    container.clientWidth;
+
+  const height =
+    container.clientHeight;
+
+
+  if(
+    width <= 0 ||
+    height <= 0
+  )
+    return;
+
+
+  camera.aspect =
+    width / height;
+
+  camera.updateProjectionMatrix();
+
+
+  renderer.setSize(
+    width,
+    height,
+    false
+  );
+
+}
+
+
+/* =====================================================
+   JALAN LURUS
+===================================================== */
+
+function roadCurve(z){
+
+  /* JALAN SEKARANG BENAR-BENAR LURUS */
+
+  return 0;
+
+}
+
+
+/* =====================================================
+   CREATE ROAD
+===================================================== */
+
+function createRoad(){
+
+  roadSegments.forEach(
+    x => scene.remove(x)
+  );
+
+  roadSegments = [];
+
+
+  const map =
+    maps[save.selectedMap];
+
+
+  /* ASPAL LEBIH JELAS */
+
+  const roadMaterial =
+    new THREE.MeshStandardMaterial({
+
+      color:
+        map.id === 0
+        ? 0x383838
+        :
+        map.id === 1
+        ? 0x3a3a3a
+        :
+        0x252525,
+
+      roughness:.92
+
+    });
+
+
+  const lineMaterial =
+    new THREE.MeshStandardMaterial({
+
+      color:0xffd21f,
+
+      emissive:0x5a4500,
+
+      emissiveIntensity:.35
+
+    });
+
+
+  const edgeMaterial =
+    new THREE.MeshStandardMaterial({
+
+      color:0xffffff,
+
+      roughness:.8
+
+    });
+
+
+  for(
+    let i = 0;
+    i < 45;
+    i++
+  ){
+
+    const group =
+      new THREE.Group();
+
+
+    /* ASPAL */
+
+    const road =
+      new THREE.Mesh(
+
+        new THREE.BoxGeometry(
+          15,
+          .15,
+          12
+        ),
+
+        roadMaterial
+
+      );
+
+
+    road.position.y =
+      -.08;
+
+
+    road.receiveShadow = true;
+
+    group.add(road);
+
+
+    /* GARIS TENGAH */
+
+    const line =
+      new THREE.Mesh(
+
+        new THREE.BoxGeometry(
+          .18,
+          .05,
+          5
+        ),
+
+        lineMaterial
+
+      );
+
+
+    line.position.y =
+      .03;
+
+
+    group.add(line);
+
+
+    /* GARIS TEPI KIRI */
+
+    const edgeLeft =
+      new THREE.Mesh(
+
+        new THREE.BoxGeometry(
+          .12,
+          .06,
+          12
+        ),
+
+        edgeMaterial
+
+      );
+
+
+    edgeLeft.position.set(
+      -7.15,
+      .03,
+      0
+    );
+
+
+    group.add(edgeLeft);
+
+
+    /* GARIS TEPI KANAN */
+
+    const edgeRight =
+      new THREE.Mesh(
+
+        new THREE.BoxGeometry(
+          .12,
+          .06,
+          12
+        ),
+
+        edgeMaterial
+
+      );
+
+
+    edgeRight.position.set(
+      7.15,
+      .03,
+      0
+    );
+
+
+    group.add(edgeRight);
+
+
+    group.position.z =
+      -i * 12;
+
+
+    group.position.x =
+      0;
+
+
+    group.userData.index =
+      i;
+
+
+    scene.add(group);
+
+    roadSegments.push(group);
+
+  }
+
+
+  createGround(map);
+
+}
+
+
+/* =====================================================
+   GROUND
+===================================================== */
+
+function createGround(map){
+
+  const old =
+    scene.getObjectByName(
+      "gameGround"
+    );
+
+
+  if(old)
+    scene.remove(old);
+
+
+  const ground =
+    new THREE.Mesh(
+
+      new THREE.PlaneGeometry(
+        1000,
+        1000
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:
+          map.ground,
+
+        roughness:1
+
+      })
+
+    );
+
+
+  ground.name =
+    "gameGround";
+
+
+  ground.rotation.x =
+    -Math.PI / 2;
+
+
+  ground.position.y =
+    -.2;
+
+
+  ground.position.z =
+    -180;
+
+
+  ground.receiveShadow =
+    true;
+
+
+  scene.add(ground);
+
+}
+
+
+/* =====================================================
+   WHEEL
+===================================================== */
+
+function createWheel(){
+
+  const wheel =
+    new THREE.Mesh(
+
+      new THREE.CylinderGeometry(
+        .42,
+        .42,
+        .34,
+        16
+      ),
+
+      new THREE.MeshStandardMaterial({
+        color:0x090909,
+        roughness:.8
+      })
+
+    );
+
+
+  wheel.rotation.z =
+    Math.PI / 2;
+
+
+  wheel.castShadow =
+    true;
+
+
+  return wheel;
+
+}
+
+
+/* =====================================================
+   HEADLIGHT
+===================================================== */
+
+function createHeadlight(){
+
+  return new THREE.Mesh(
+
+    new THREE.BoxGeometry(
+      .45,
+      .18,
+      .12
+    ),
+
+    new THREE.MeshStandardMaterial({
+
+      color:0xffffff,
+
+      emissive:0xffffff,
+
+      emissiveIntensity:1.2
+
+    })
+
+  );
+
+}
+
+
+/* =====================================================
+   TAIL LIGHT
+===================================================== */
+
+function createTailLight(){
+
+  return new THREE.Mesh(
+
+    new THREE.BoxGeometry(
+      .42,
+      .16,
+      .12
+    ),
+
+    new THREE.MeshStandardMaterial({
+
+      color:0xef1111,
+
+      emissive:0x550000,
+
+      emissiveIntensity:.8
+
+    })
+
+  );
+
+}
+
+
+/* =====================================================
+   NOS FLAME
+===================================================== */
+
+function createNitroFlame(){
+
+  const group =
+    new THREE.Group();
+
+
+  /* API UTAMA */
+
+  const flame =
+    new THREE.Mesh(
+
+      new THREE.ConeGeometry(
+        .20,
+        .85,
+        8
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0xff6a00,
+
+        emissive:0xff3300,
+
+        emissiveIntensity:2,
+
+        transparent:true,
+
+        opacity:.95
+
+      })
+
+    );
+
+
+  /* Kerucut menghadap ke belakang */
+
+  flame.rotation.x =
+    Math.PI / 2;
+
+
+  flame.position.z =
+    .42;
+
+
+  group.add(flame);
+
+
+  /* INTI API */
+
+  const core =
+    new THREE.Mesh(
+
+      new THREE.ConeGeometry(
+        .09,
+        .55,
+        8
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0xffff99,
+
+        emissive:0xffff00,
+
+        emissiveIntensity:2
+
+      })
+
+    );
+
+
+  core.rotation.x =
+    Math.PI / 2;
+
+
+  core.position.z =
+    .32;
+
+
+  group.add(core);
+
+
+  group.visible =
+    false;
+
+
+  return group;
+
+}
+
+
+/* =====================================================
+   CREATE CAR
+   DEPAN MOBIL = -Z
+===================================================== */
+
+function createCar(color){
+
+  const group =
+    new THREE.Group();
+
+
+  /* =================================================
+     BODY UTAMA
+  ================================================= */
+
+  const body =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        2.5,
+        .62,
+        4.3
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:color,
+
+        roughness:.55,
+
+        metalness:.2
+
+      })
+
+    );
+
+
+  body.position.set(
+    0,
+    .65,
+    0
+  );
+
+
+  body.castShadow =
+    true;
+
+
+  group.add(body);
+
+
+  /* =================================================
+     KAP DEPAN
+     DEPAN = -Z
+  ================================================= */
+
+  const hood =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        2.25,
+        .30,
+        1.25
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:color,
+
+        roughness:.5
+
+      })
+
+    );
+
+
+  hood.position.set(
+    0,
+    .98,
+    -1.42
+  );
+
+
+  hood.castShadow =
+    true;
+
+
+  group.add(hood);
+
+
+  /* =================================================
+     BAGASI BELAKANG
+  ================================================= */
+
+  const trunk =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        2.25,
+        .28,
+        .85
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:color,
+
+        roughness:.55
+
+      })
+
+    );
+
+
+  trunk.position.set(
+    0,
+    .94,
+    1.45
+  );
+
+
+  group.add(trunk);
+
+
+  /* =================================================
+     KABIN
+  ================================================= */
+
+  const cabin =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        1.85,
+        .72,
+        1.75
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x111827,
+
+        roughness:.22,
+
+        metalness:.15
+
+      })
+
+    );
+
+
+  cabin.position.set(
+    0,
+    1.28,
+    -.10
+  );
+
+
+  cabin.castShadow =
+    true;
+
+
+  group.add(cabin);
+
+
+  /* =================================================
+     KACA DEPAN
+  ================================================= */
+
+  const windshield =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        1.55,
+        .42,
+        .08
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x172b45,
+
+        metalness:.2,
+
+        roughness:.15
+
+      })
+
+    );
+
+
+  windshield.position.set(
+    0,
+    1.36,
+    -.99
+  );
+
+
+  windshield.rotation.x =
+    -.10;
+
+
+  group.add(windshield);
+
+
+  /* =================================================
+     KACA BELAKANG
+  ================================================= */
+
+  const rearWindow =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        1.55,
+        .40,
+        .08
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x172b45,
+
+        metalness:.2,
+
+        roughness:.15
+
+      })
+
+    );
+
+
+  rearWindow.position.set(
+    0,
+    1.36,
+    .79
+  );
+
+
+  rearWindow.rotation.x =
+    .10;
+
+
+  group.add(rearWindow);
+
+
+  /* =================================================
+     HEADLIGHT DEPAN
+  ================================================= */
+
+  const headLeft =
+    createHeadlight();
+
+  headLeft.position.set(
+    -.78,
+    .76,
+    -2.17
+  );
+
+  group.add(headLeft);
+
+
+  const headRight =
+    createHeadlight();
+
+  headRight.position.set(
+    .78,
+    .76,
+    -2.17
+  );
+
+  group.add(headRight);
+
+
+  /* =================================================
+     TAILLIGHT BELAKANG
+  ================================================= */
+
+  const tailLeft =
+    createTailLight();
+
+  tailLeft.position.set(
+    -.78,
+    .75,
+    2.17
+  );
+
+  group.add(tailLeft);
+
+
+  const tailRight =
+    createTailLight();
+
+  tailRight.position.set(
+    .78,
+    .75,
+    2.17
+  );
+
+  group.add(tailRight);
+
+
+  /* =================================================
+     BUMPER DEPAN
+  ================================================= */
+
+  const frontBumper =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        2.35,
+        .18,
+        .16
+      ),
+
+      new THREE.MeshStandardMaterial({
+        color:0x111111
+      })
+
+    );
+
+
+  frontBumper.position.set(
+    0,
+    .43,
+    -2.18
+  );
+
+
+  group.add(frontBumper);
+
+
+  /* =================================================
+     BUMPER BELAKANG
+  ================================================= */
+
+  const rearBumper =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        2.35,
+        .18,
+        .16
+      ),
+
+      new THREE.MeshStandardMaterial({
+        color:0x111111
+      })
+
+    );
+
+
+  rearBumper.position.set(
+    0,
+    .43,
+    2.18
+  );
+
+
+  group.add(rearBumper);
+
+
+  /* =================================================
+     RODA
+  ================================================= */
+
+  [
+    [-1.20,.45,-1.35],
+    [ 1.20,.45,-1.35],
+    [-1.20,.45, 1.35],
+    [ 1.20,.45, 1.35]
+
+  ].forEach(
+    pos => {
+
+      const wheel =
+        createWheel();
+
+
+      wheel.position.set(
+        pos[0],
+        pos[1],
+        pos[2]
+      );
+
+
+      group.add(wheel);
+
+    }
+  );
+
+
+  /* =================================================
+     KNALPOT
+     BELAKANG = +Z
+  ================================================= */
+
+  const exhaustLeft =
+    new THREE.Mesh(
+
+      new THREE.CylinderGeometry(
+        .10,
+        .10,
+        .35,
+        12
+      ),
+
+      new THREE.MeshStandardMaterial({
+        color:0x555555,
+        metalness:.8
+      })
+
+    );
+
+
+  exhaustLeft.rotation.x =
+    Math.PI / 2;
+
+
+  exhaustLeft.position.set(
+    -.65,
+    .45,
+    2.30
+  );
+
+
+  group.add(exhaustLeft);
+
+
+  const exhaustRight =
+    new THREE.Mesh(
+
+      new THREE.CylinderGeometry(
+        .10,
+        .10,
+        .35,
+        12
+      ),
+
+      new THREE.MeshStandardMaterial({
+        color:0x555555,
+        metalness:.8
+      })
+
+    );
+
+
+  exhaustRight.rotation.x =
+    Math.PI / 2;
+
+
+  exhaustRight.position.set(
+    .65,
+    .45,
+    2.30
+  );
+
+
+  group.add(exhaustRight);
+
+
+  /* =================================================
+     API NOS KIRI
+  ================================================= */
+
+  const flameLeft =
+    createNitroFlame();
+
+
+  flameLeft.position.set(
+    -.65,
+    .45,
+    2.40
+  );
+
+
+  group.add(flameLeft);
+
+
+  /* =================================================
+     API NOS KANAN
+  ================================================= */
+
+  const flameRight =
+    createNitroFlame();
+
+
+  flameRight.position.set(
+    .65,
+    .45,
+    2.40
+  );
+
+
+  group.add(flameRight);
+
+
+  group.userData.nitroFlames = [
+    flameLeft,
+    flameRight
+  ];
+
+
+  return group;
+
+}
+
+
+/* =====================================================
+   UPDATE NOS
+===================================================== */
+
+function updateNitroEffect(active){
+
+  if(!playerCar)
+    return;
+
+
+  const flames =
+    playerCar.userData.nitroFlames;
+
+
+  if(!flames)
+    return;
+
+
+  flames.forEach(
+    flame => {
+
+      flame.visible =
+        active;
+
+      if(active){
+
+        const scale =
+          .75 +
+          Math.random() * .45;
+
+        flame.scale.set(
+          scale,
+          scale,
+          scale
+        );
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =====================================================
+   CREATE ENEMY
+===================================================== */
+
+function createEnemy(){
+
+  const types = [
+    "car",
+    "bus",
+    "truck"
+  ];
+
+
+  const type =
+    types[
+      Math.floor(
+        Math.random() *
+        types.length
+      )
+    ];
+
+
+  let object;
+
+
+  if(type === "car"){
+
+    const colors = [
+      0xfacc15,
+      0x22c55e,
+      0xa855f7,
+      0xef4444,
+      0xffffff
+    ];
+
+
+    object =
+      createCar(
+        colors[
+          Math.floor(
+            Math.random() *
+            colors.length
+          )
+        ]
+      );
+
+  }
+
+
+  if(type === "bus"){
+
+    object =
+      createBus();
+
+  }
+
+
+  if(type === "truck"){
+
+    object =
+      createTruck();
+
+  }
+
+
+  object.userData.type =
+    type;
+
+
+  object.userData.laneOffset =
+    0;
+
+
+  object.position.z =
+    -180 -
+    Math.random() * 100;
+
+
+  const lanes = [
+    -5,
+    -2.5,
+    0,
+    2.5,
+    5
+  ];
+
+
+  object.position.x =
+    lanes[
+      Math.floor(
+        Math.random() *
+        lanes.length
+      )
+    ];
+
+
+  scene.add(object);
+
+  enemies.push(object);
+
+}
+
+
+/* =====================================================
+   BUS
+   DEPAN = -Z
+===================================================== */
+
+function createBus(){
+
+  const group =
+    new THREE.Group();
+
+
+  /* BODY */
+
+  const body =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        2.8,
+        2.4,
+        7
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x2563eb,
+
+        roughness:.65
+
+      })
+
+    );
+
+
+  body.position.y =
+    1.35;
+
+
+  body.castShadow =
+    true;
+
+
+  group.add(body);
+
+
+  /* BAGIAN DEPAN */
+
+  const front =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        2.65,
+        1.4,
+        .18
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x1d4ed8
+
+      })
+
+    );
+
+
+  front.position.set(
+    0,
+    1.65,
+    -3.48
+  );
+
+
+  group.add(front);
+
+
+  /* KACA DEPAN */
+
+  const frontGlass =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        2.25,
+        .82,
+        .08
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x10233b,
+
+        metalness:.25,
+
+        roughness:.18
+
+      })
+
+    );
+
+
+  frontGlass.position.set(
+    0,
+    1.95,
+    -3.59
+  );
+
+
+  group.add(frontGlass);
+
+
+  /* JENDELA SAMPING */
+
+  const sideWindowMaterial =
+    new THREE.MeshStandardMaterial({
+
+      color:0x14273d,
+
+      metalness:.2,
+
+      roughness:.18
+
+    });
+
+
+  for(
+    let z = -2.25;
+    z <= 2.25;
+    z += 1.5
+  ){
+
+    const leftWindow =
+      new THREE.Mesh(
+
+        new THREE.BoxGeometry(
+          .06,
+          .75,
+          1.05
+        ),
+
+        sideWindowMaterial
+
+      );
+
+
+    leftWindow.position.set(
+      -1.43,
+      1.9,
+      z
+    );
+
+
+    group.add(leftWindow);
+
+
+    const rightWindow =
+      new THREE.Mesh(
+
+        new THREE.BoxGeometry(
+          .06,
+          .75,
+          1.05
+        ),
+
+        sideWindowMaterial
+
+      );
+
+
+    rightWindow.position.set(
+      1.43,
+      1.9,
+      z
+    );
+
+
+    group.add(rightWindow);
+
+  }
+
+
+  /* LAMPU DEPAN */
+
+  const h1 =
+    createHeadlight();
+
+  h1.scale.set(
+    1.1,
+    1.4,
+    1
+  );
+
+  h1.position.set(
+    -.85,
+    .75,
+    -3.60
+  );
+
+  group.add(h1);
+
+
+  const h2 =
+    createHeadlight();
+
+  h2.scale.set(
+    1.1,
+    1.4,
+    1
+  );
+
+  h2.position.set(
+    .85,
+    .75,
+    -3.60
+  );
+
+  group.add(h2);
+
+
+  /* RODA */
+
+  [
+    [-1.48,.55,-2.25],
+    [ 1.48,.55,-2.25],
+    [-1.48,.55, 2.25],
+    [ 1.48,.55, 2.25]
+
+  ].forEach(
+    pos => {
+
+      const wheel =
+        createWheel();
+
+
+      wheel.scale.set(
+        1.2,
+        1.2,
+        1.2
+      );
+
+
+      wheel.position.set(
+        pos[0],
+        pos[1],
+        pos[2]
+      );
+
+
+      group.add(wheel);
+
+    }
+  );
+
+
+  return group;
+
+}
+
+
+/* =====================================================
+   TRUCK
+   DEPAN = -Z
+===================================================== */
+
+function createTruck(){
+
+  const group =
+    new THREE.Group();
+
+
+  /* =================================================
+     KABIN TRUK
+  ================================================= */
+
+  const cabin =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        2.8,
+        2.5,
+        2.4
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0xef4444,
+
+        roughness:.55
+
+      })
+
+    );
+
+
+  cabin.position.set(
+    0,
+    1.45,
+    -1.75
+  );
+
+
+  cabin.castShadow =
+    true;
+
+
+  group.add(cabin);
+
+
+  /* KACA DEPAN */
+
+  const windshield =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        2.25,
+        .9,
+        .08
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x10243a,
+
+        metalness:.2,
+
+        roughness:.2
+
+      })
+
+    );
+
+
+  windshield.position.set(
+    0,
+    1.75,
+    -2.98
+  );
+
+
+  group.add(windshield);
+
+
+  /* KACA SAMPING */
+
+  const sideGlassMaterial =
+    new THREE.MeshStandardMaterial({
+
+      color:0x13283f,
+
+      roughness:.18
+
+    });
+
+
+  const sideGlassL =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        .06,
+        .75,
+        1.05
+      ),
+
+      sideGlassMaterial
+
+    );
+
+
+  sideGlassL.position.set(
+    -1.43,
+    1.75,
+    -1.75
+  );
+
+
+  group.add(sideGlassL);
+
+
+  const sideGlassR =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        .06,
+        .75,
+        1.05
+      ),
+
+      sideGlassMaterial
+
+    );
+
+
+  sideGlassR.position.set(
+    1.43,
+    1.75,
+    -1.75
+  );
+
+
+  group.add(sideGlassR);
+
+
+  /* =================================================
+     BAK BARANG
+  ================================================= */
+
+  const cargo =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        3.0,
+        2.7,
+        4.5
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0xf1f5f9,
+
+        roughness:.75
+
+      })
+
+    );
+
+
+  cargo.position.set(
+    0,
+    1.55,
+    1.55
+  );
+
+
+  cargo.castShadow =
+    true;
+
+
+  group.add(cargo);
+
+
+  /* GARIS BAK */
+
+  const cargoStripe =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        3.04,
+        .35,
+        4.55
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0xdc2626
+
+      })
+
+    );
+
+
+  cargoStripe.position.set(
+    0,
+    2.35,
+    1.55
+  );
+
+
+  group.add(cargoStripe);
+
+
+  /* =================================================
+     LAMPU DEPAN
+  ================================================= */
+
+  const h1 =
+    createHeadlight();
+
+  h1.scale.set(
+    1.1,
+    1.5,
+    1
+  );
+
+  h1.position.set(
+    -.85,
+    .82,
+    -3.02
+  );
+
+  group.add(h1);
+
+
+  const h2 =
+    createHeadlight();
+
+  h2.scale.set(
+    1.1,
+    1.5,
+    1
+  );
+
+  h2.position.set(
+    .85,
+    .82,
+    -3.02
+  );
+
+  group.add(h2);
+
+
+  /* =================================================
+     LAMPU BELAKANG
+  ================================================= */
+
+  const t1 =
+    createTailLight();
+
+  t1.position.set(
+    -.95,
+    .82,
+    3.85
+  );
+
+  group.add(t1);
+
+
+  const t2 =
+    createTailLight();
+
+  t2.position.set(
+    .95,
+    .82,
+    3.85
+  );
+
+  group.add(t2);
+
+
+  /* =================================================
+     RODA TRUK
+  ================================================= */
+
+  [
+    [-1.48,.65,-2.0],
+    [ 1.48,.65,-2.0],
+    [-1.48,.65, 1.0],
+    [ 1.48,.65, 1.0],
+    [-1.48,.65, 2.8],
+    [ 1.48,.65, 2.8]
+
+  ].forEach(
+    pos => {
+
+      const wheel =
+        createWheel();
+
+
+      wheel.scale.set(
+        1.2,
+        1.2,
+        1.2
+      );
+
+
+      wheel.position.set(
+        pos[0],
+        pos[1],
+        pos[2]
+      );
+
+
+      group.add(wheel);
+
+    }
+  );
+
+
+  return group;
+
+}
+
+
+/* =====================================================
+   TRAIN
+===================================================== */
+
+function createTrain(){
+
+  if(train){
+
+    scene.remove(train);
+
+  }
+
+
+  train =
+    new THREE.Group();
+
+
+  /* =================================================
+     LOKOMOTIF
+  ================================================= */
+
+  const engine =
+    new THREE.Group();
+
+
+  /* BADAN */
+
+  const engineBody =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        3.5,
+        2.3,
+        6
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x991b1b,
+
+        metalness:.35,
+
+        roughness:.55
+
+      })
+
+    );
+
+
+  engineBody.position.y =
+    1.35;
+
+
+  engine.add(engineBody);
+
+
+  /* DEPAN LOKOMOTIF */
+
+  const engineFront =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        3.2,
+        1.8,
+        .35
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x7f1d1d,
+
+        metalness:.3
+
+      })
+
+    );
+
+
+  engineFront.position.set(
+    0,
+    1.35,
+    -3.1
+  );
+
+
+  engine.add(engineFront);
+
+
+  /* LAMPU KERETA */
+
+  const trainLight =
+    new THREE.Mesh(
+
+      new THREE.SphereGeometry(
+        .28,
+        12,
+        12
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0xffffaa,
+
+        emissive:0xffff00,
+
+        emissiveIntensity:2
+
+      })
+
+    );
+
+
+  trainLight.position.set(
+    0,
+    1.6,
+    -3.35
+  );
+
+
+  engine.add(trainLight);
+
+
+  /* CEROBONG */
+
+  const chimney =
+    new THREE.Mesh(
+
+      new THREE.CylinderGeometry(
+        .32,
+        .42,
+        1.2,
+        12
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x202020,
+
+        metalness:.6
+
+      })
+
+    );
+
+
+  chimney.position.set(
+    0,
+    3.0,
+    -1.5
+  );
+
+
+  engine.add(chimney);
+
+
+  /* KABIN */
+
+  const trainCabin =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        3,
+        2.4,
+        2
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x111827,
+
+        roughness:.55
+
+      })
+
+    );
+
+
+  trainCabin.position.set(
+    0,
+    2.25,
+    1.25
+  );
+
+
+  engine.add(trainCabin);
+
+
+  /* JENDELA KABIN */
+
+  const cabinWindow =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        2.2,
+        .75,
+        .08
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x60a5fa,
+
+        metalness:.3,
+
+        roughness:.2
+
+      })
+
+    );
+
+
+  cabinWindow.position.set(
+    0,
+    2.45,
+    .22
+  );
+
+
+  engine.add(cabinWindow);
+
+
+  engine.position.z =
+    -4;
+
+
+  train.add(engine);
+
+
+  /* =================================================
+     GERBONG
+  ================================================= */
+
+  for(
+    let i = 0;
+    i < 3;
+    i++
+  ){
+
+    const wagon =
+      new THREE.Group();
+
+
+    const wagonBody =
+      new THREE.Mesh(
+
+        new THREE.BoxGeometry(
+          3.4,
+          2.4,
+          5.5
+        ),
+
+        new THREE.MeshStandardMaterial({
+
+          color:
+            i % 2 === 0
+            ? 0x475569
+            : 0x64748b,
+
+          roughness:.7
+
+        })
+
+      );
+
+
+    wagonBody.position.y =
+      1.35;
+
+
+    wagon.add(wagonBody);
+
+
+    /* JENDELA GERBONG */
+
+    for(
+      let z = -1.5;
+      z <= 1.5;
+      z += 1.5
+    ){
+
+      const window =
+        new THREE.Mesh(
+
+          new THREE.BoxGeometry(
+            3.0,
+            .55,
+            .08
+          ),
+
+          new THREE.MeshStandardMaterial({
+
+            color:0x172554,
+
+            metalness:.2,
+
+            roughness:.25
+
+          })
+
+        );
+
+
+      window.position.set(
+        0,
+        1.75,
+        z
+      );
+
+
+      wagon.add(window);
+
+    }
+
+
+    wagon.position.set(
+      0,
+      0,
+      2 + i * 6
+    );
+
+
+    train.add(wagon);
+
+  }
+
+
+  /* =================================================
+     RODA KERETA
+  ================================================= */
+
+  for(
+    let z = -8;
+    z <= 16;
+    z += 4
+  ){
+
+    [-1.35,1.35].forEach(
+      x => {
+
+        const wheel =
+          new THREE.Mesh(
+
+            new THREE.CylinderGeometry(
+              .42,
+              .42,
+              .25,
+              12
+            ),
+
+            new THREE.MeshStandardMaterial({
+
+              color:0x111111,
+
+              metalness:.5
+
+            })
+
+          );
+
+
+        wheel.rotation.z =
+          Math.PI / 2;
+
+
+        wheel.position.set(
+          x,
+          .55,
+          z
+        );
+
+
+        train.add(wheel);
+
+      }
+    );
+
+  }
+
+
+  train.position.set(
+    -35,
+    0,
+    -70
+  );
+
+
+  train.userData.active =
+    false;
+
+
+  scene.add(train);
+
+}
+
+
+/* =====================================================
+   TRAIN EVENT
+===================================================== */
+
+function startTrain(){
+
+  if(!train)
+    createTrain();
+
+
+  train.userData.active =
+    true;
+
+
+  train.position.x =
+    -35;
+
+
+  train.position.z =
+    -70;
+
+}
+
+
+/* =====================================================
+   UPDATE TRAIN
+===================================================== */
+
+function updateTrain(dt){
+
+  if(
+    !train ||
+    !train.userData.active
+  )
+    return;
+
+
+  train.position.x +=
+    30 * dt;
+
+
+  if(
+    train.position.x > 35
+  ){
+
+    train.userData.active =
+      false;
+
+  }
+
+
+  if(!playerCar)
+    return;
+
+
+  const dz =
+    Math.abs(
+      train.position.z -
+      playerCar.position.z
+    );
+
+
+  const dx =
+    Math.abs(
+      train.position.x -
+      playerCar.position.x
+    );
+
+
+  if(
+    dz < 5 &&
+    dx < 4
+  ){
+
+    crash(train);
+
+  }
+
+}
+
+
+/* =====================================================
+   SCENERY
+===================================================== */
+
+function createScenery(){
+
+  scenery.forEach(
+    x => scene.remove(x)
+  );
+
+  scenery = [];
+
+
+  const map =
+    maps[save.selectedMap];
+
+
+  for(
+    let i = 0;
+    i < 55;
+    i++
+  ){
+
+    let object;
+
+
+    /* CITY */
+
+    if(map.id === 0){
+
+      object =
+        createCityBuilding();
+
+    }
+
+
+    /* DESERT */
+
+    else if(map.id === 1){
+
+      object =
+        createCactus();
+
+    }
+
+
+    /* NIGHT */
+
+    else{
+
+      object =
+        createNightBuilding();
+
+    }
+
+
+    object.position.z =
+      -20 -
+      Math.random() * 400;
+
+
+    object.position.x =
+      Math.random() > .5
+      ?
+      12 + Math.random() * 18
+      :
+      -12 - Math.random() * 18;
+
+
+    scene.add(object);
+
+    scenery.push(object);
+
+  }
+
+}
+
+
+/* =====================================================
+   CITY BUILDING
+===================================================== */
+
+function createCityBuilding(){
+
+  const group =
+    new THREE.Group();
+
+
+  const height =
+    5 +
+    Math.random() * 10;
+
+
+  const building =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        4,
+        height,
+        4
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:
+          0x64748b,
+
+        roughness:.8
+
+      })
+
+    );
+
+
+  building.position.y =
+    height / 2;
+
+
+  group.add(building);
+
+
+  /* JENDELA */
+
+  for(
+    let y = 2;
+    y < height - 1;
+    y += 2
+  ){
+
+    for(
+      let x = -1;
+      x <= 1;
+      x++
+    ){
+
+      const window =
+        new THREE.Mesh(
+
+          new THREE.BoxGeometry(
+            .55,
+            .55,
+            .08
+          ),
+
+          new THREE.MeshStandardMaterial({
+
+            color:0xfde68a,
+
+            emissive:0x8a6d20,
+
+            emissiveIntensity:.4
+
+          })
+
+        );
+
+
+      window.position.set(
+        x,
+        y,
+        -2.03
+      );
+
+
+      group.add(window);
+
+    }
+
+  }
+
+
+  return group;
+
+}
+
+
+/* =====================================================
+   CACTUS
+===================================================== */
+
+function createCactus(){
+
+  const group =
+    new THREE.Group();
+
+
+  const trunk =
+    new THREE.Mesh(
+
+      new THREE.CylinderGeometry(
+        .28,
+        .38,
+        2.8,
+        8
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x15803d
+
+      })
+
+    );
+
+
+  trunk.position.y =
+    1.4;
+
+
+  group.add(trunk);
+
+
+  const arm1 =
+    new THREE.Mesh(
+
+      new THREE.CylinderGeometry(
+        .18,
+        .22,
+        1.2,
+        8
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x16a34a
+
+      })
+
+    );
+
+
+  arm1.rotation.z =
+    Math.PI / 2;
+
+
+  arm1.position.set(
+    .55,
+    1.55,
+    0
+  );
+
+
+  group.add(arm1);
+
+
+  const arm2 =
+    new THREE.Mesh(
+
+      new THREE.CylinderGeometry(
+        .18,
+        .22,
+        1,
+        8
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x16a34a
+
+      })
+
+    );
+
+
+  arm2.rotation.z =
+    Math.PI / 2;
+
+
+  arm2.position.set(
+    -.5,
+    1.0,
+    0
+  );
+
+
+  group.add(arm2);
+
+
+  return group;
+
+}
+
+
+/* =====================================================
+   NIGHT BUILDING
+===================================================== */
+
+function createNightBuilding(){
+
+  const group =
+    new THREE.Group();
+
+
+  const height =
+    7 +
+    Math.random() * 10;
+
+
+  const building =
+    new THREE.Mesh(
+
+      new THREE.BoxGeometry(
+        4,
+        height,
+        4
+      ),
+
+      new THREE.MeshStandardMaterial({
+
+        color:0x172554,
+
+        roughness:.8
+
+      })
+
+    );
+
+
+  building.position.y =
+    height / 2;
+
+
+  group.add(building);
+
+
+  for(
+    let y = 2;
+    y < height - 1;
+    y += 2
+  ){
+
+    for(
+      let x = -1;
+      x <= 1;
+      x++
+    ){
+
+      const window =
+        new THREE.Mesh(
+
+          new THREE.BoxGeometry(
+            .55,
+            .55,
+            .08
+          ),
+
+          new THREE.MeshStandardMaterial({
+
+            color:
+              Math.random() > .3
+              ? 0x38bdf8
+              : 0xfacc15,
+
+            emissive:
+              Math.random() > .3
+              ? 0x0c4a6e
+              : 0x713f12,
+
+            emissiveIntensity:.6
+
+          })
+
+        );
+
+
+      window.position.set(
+        x,
+        y,
+        -2.03
+      );
+
+
+      group.add(window);
+
+    }
+
+  }
+
+
+  return group;
+
+}
+
+</script>
