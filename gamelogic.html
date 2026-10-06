@@ -4,10 +4,10 @@
    PENGATURAN KECEPATAN (ubah angka di sini)
 ===================================================== */
 
-const SPEED_BOOST = 5;          // pengali kecepatan seluruh game (sebelumnya 1)
-const NITRO_MULT = 5.2;           // kekuatan nitro (sebelumnya 1.8)
-const UPGRADE_SPEED_BONUS = 7;    // tambahan per level upgrade speed (sebelumnya 1.5)
-const MAP_DIFFICULTY_BONUS = 0.15; // map lebih sulit = lebih cepat
+const SPEED_BOOST = 8;          // pengali kecepatan seluruh game (sebelumnya 1)
+const NITRO_MULT = 10;           // kekuatan nitro (sebelumnya 1.8)
+const UPGRADE_SPEED_BONUS = 10;    // tambahan per level upgrade speed (sebelumnya 1.5)
+const MAP_DIFFICULTY_BONUS = 3.15; // map lebih sulit = lebih cepat
 const DIST_SCALE = 5.5;           // jarak balapan dikali ini agar durasi tetap seimbang
 const FINISH_DISTANCE = 15000 * DIST_SCALE;
 const LAP_DISTANCE = FINISH_DISTANCE / 3;
@@ -309,10 +309,10 @@ function updateGame(dt) {
 
   let speed = map.baseSpeed;
 
-  speed += car.speed * 1.4;
+  speed += car.speed * 3.4;
   speed += save.upgrades.speed * UPGRADE_SPEED_BONUS;
 
-  speed *= 1 + speedProgress * 0.85;
+  speed *= 1 + speedProgress * 3.85;
 
   speed *= SPEED_BOOST * (1 + (map.difficulty - 1) * MAP_DIFFICULTY_BONUS);
 
