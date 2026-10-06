@@ -140,7 +140,12 @@
         " (layar: " + window.devicePixelRatio.toFixed(2) + ")" +
         "\nBayangan: " + onOff(renderer.shadowMap.enabled) +
         "   Antialias: " + onOff(aa) +
-        "\nGPU: " + getGpuName();
+        "\nGPU: " + getGpuName() +
+        "\nMode: " + (
+          window.GAME_QUALITY && window.GAME_QUALITY.low
+            ? "RENDAH (browser tanpa GPU asli)"
+            : "NORMAL"
+        );
 
     } catch (e) {
       text += "\n(info renderer tidak tersedia)";
