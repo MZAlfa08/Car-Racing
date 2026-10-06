@@ -1,0 +1,252 @@
+<script>
+
+/* =====================================================
+   DATA MOBIL
+===================================================== */
+
+const cars = [
+
+  {
+    id: 0,
+    name: "Street Basic",
+    color: 0x2563eb,
+    price: 0,
+    speed: 1,
+    handling: 1,
+    brake: 1,
+    nitro: 1
+  },
+
+  {
+    id: 1,
+    name: "Turbo GT",
+    color: 0xef4444,
+    price: 2500,
+    speed: 2,
+    handling: 2,
+    brake: 1,
+    nitro: 2
+  },
+
+  {
+    id: 2,
+    name: "Shadow X",
+    color: 0x111827,
+    price: 6000,
+    speed: 3,
+    handling: 3,
+    brake: 2,
+    nitro: 3
+  },
+
+  {
+    id: 3,
+    name: "Hyper RS",
+    color: 0xfacc15,
+    price: 12000,
+    speed: 4,
+    handling: 4,
+    brake: 4,
+    nitro: 4
+  }
+
+];
+
+
+/* =====================================================
+   MAPS
+===================================================== */
+
+const maps = [
+
+  /* ===================================================
+     CITY RUSH
+  =================================================== */
+
+  {
+    id: 0,
+
+    name: "CITY RUSH",
+
+    icon: "🌆",
+
+    description:
+      "Kota modern dengan gedung tinggi",
+
+    road: 0x444444,
+
+    ground: 0x607d68,
+
+    difficulty: 1,
+
+    /* Kecepatan dasar paling rendah */
+    baseSpeed: 13,
+
+    /* Jumlah kendaraan paling sedikit */
+    maxTraffic: 6,
+
+    /* Spawn awal lebih lambat */
+    spawnTime: 2.4,
+
+    environment: "city",
+
+    day: true
+  },
+
+
+  /* ===================================================
+     DESERT RUN
+  =================================================== */
+
+  {
+    id: 1,
+
+    name: "DESERT RUN",
+
+    icon: "🏜️",
+
+    description:
+      "Jalan panjang di tengah gurun",
+
+    road: 0x484848,
+
+    ground: 0xc99b5b,
+
+    difficulty: 2,
+
+    baseSpeed: 15,
+
+    maxTraffic: 8,
+
+    spawnTime: 2.0,
+
+    environment: "desert",
+
+    day: true
+  },
+
+
+  /* ===================================================
+     NIGHT HIGHWAY
+  =================================================== */
+
+  {
+    id: 2,
+
+    name: "NIGHT HIGHWAY",
+
+    icon: "🌃",
+
+    description:
+      "Jalan raya malam hari",
+
+    road: 0x252525,
+
+    ground: 0x070b16,
+
+    difficulty: 3,
+
+    baseSpeed: 17,
+
+    maxTraffic: 10,
+
+    spawnTime: 1.55,
+
+    environment: "night",
+
+    day: false
+  }
+
+];
+
+
+/* =====================================================
+   DATA PEMAIN
+   SETIAP REFRESH = PEMAIN BARU
+===================================================== */
+
+let save = {
+
+  money: 0,
+
+  selectedCar: 0,
+
+  selectedMap: 0,
+
+  ownedCars: [0],
+
+  upgrades: {
+
+    speed: 0,
+
+    handling: 0,
+
+    brake: 0,
+
+    nitro: 0
+
+  }
+
+};
+
+
+/* =====================================================
+   SAVE GAME
+=====================================================
+
+   TIDAK MENGGUNAKAN LOCALSTORAGE.
+
+   Selama halaman masih terbuka:
+   - uang tetap ada
+   - mobil yang dibeli tetap ada
+   - upgrade tetap ada
+   - map tetap ada
+
+   Refresh halaman:
+   - uang kembali 0
+   - mobil kembali Street Basic
+   - upgrade kembali 0
+   - map kembali City Rush
+===================================================== */
+
+function saveGame(){
+
+  // Data hanya disimpan di RAM/browser session.
+  // Tidak menggunakan localStorage.
+
+}
+
+
+/* =====================================================
+   RESET GAME
+===================================================== */
+
+function resetGameData(){
+
+  save = {
+
+    money: 0,
+
+    selectedCar: 0,
+
+    selectedMap: 0,
+
+    ownedCars: [0],
+
+    upgrades: {
+
+      speed: 0,
+
+      handling: 0,
+
+      brake: 0,
+
+      nitro: 0
+
+    }
+
+  };
+
+}
+
+</script>
