@@ -187,7 +187,7 @@
     }
 
 
-    /* Muat CSS (boleh berisi tag <style> atau CSS murni) */
+        /* Muat CSS (boleh berisi tag <style> atau CSS murni) */
 
     async function includeStyle(url) {
 
@@ -210,6 +210,18 @@
     }
 
 
+    /* Muat file .js biasa (audio.js) */
+
+    async function includeScript(url) {
+
+      const s = document.createElement("script");
+      s.src = url;
+
+      await runScripts([s]);
+
+    }
+
+
     async function bootGame() {
 
       try {
@@ -221,6 +233,8 @@
         await includeHTML("game3d.html");
         await includeHTML("gamelogic.html");
         await includeHTML("controls.html");
+
+        await includeScript("audio.js");
 
         startScreenObserver();
 
