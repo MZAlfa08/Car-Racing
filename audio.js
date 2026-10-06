@@ -386,8 +386,24 @@
 
     error: function () {
       tone(220, 0.28, "sawtooth", 0.3, 0, 140);
+    },
+
+    /* Suara koin. step = urutan koin beruntun, nadanya makin tinggi */
+
+    coin: function (step) {
+      const f = 988 * Math.pow(2, clamp(step || 0, 0, 12) / 12);
+      tone(f, 0.12, "triangle", 0.45);
+      tone(f * 1.5, 0.18, "sine", 0.3, 0.05);
     }
 
+  };
+
+  /* Supaya file lain (coins.js) bisa memutar suara */
+
+  window.GameAudio = {
+    play: function (name, arg) {
+      if (sfx[name]) sfx[name](arg);
+    }
   };
 
 
@@ -529,20 +545,22 @@
 
     const style = document.createElement("style");
 
+    /* Posisi (top/right/ukuran) diatur otomatis oleh placeToggle() */
+
     style.textContent = `
 
       #audioToggle {
         position: fixed;
-        top: 22px;
-        right: 80px;
+        top: 12px;
+        right: 12px;
         z-index: 100;
-        width: 48px;
-        height: 48px;
+        width: 42px;
+        height: 42px;
         border-radius: 50%;
         border: 2px solid rgba(255,255,255,.25);
         background: rgba(15,23,42,.88);
         color: white;
-        font-size: 20px;
+        font-size: 17px;
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -552,16 +570,6 @@
 
       #audioToggle:active {
         transform: scale(.94);
-      }
-
-      @media (max-width: 600px) {
-        #audioToggle {
-          top: 12px;
-          right: 62px;
-          width: 42px;
-          height: 42px;
-          font-size: 17px;
-        }
       }
 
     `;
@@ -595,6 +603,43 @@
     });
 
     document.body.appendChild(button);
+
+    /*
+      Saat balapan, tombol ditaruh tepat DI BAWAH tombol pause
+      (posisinya dibaca langsung dari tombol pause).
+      Di menu, tombol ada di pojok kanan atas.
+    */
+
+    function placeToggle() {
+
+      const pause = document.getElementById("pauseBtn");
+
+      let top = 12;
+      let right = 12;
+      let size = 42;
+
+      if (pause) {
+
+        const r = pause.getBoundingClientRect();
+
+        if (r.width > 0 && r.height > 0) {
+          size = r.width;
+          top = r.bottom + 8;
+          right = window.innerWidth - r.right;
+        }
+
+      }
+
+      button.style.width = size + "px";
+      button.style.height = size + "px";
+      button.style.top = top + "px";
+      button.style.right = right + "px";
+
+    }
+
+    placeToggle();
+    setInterval(placeToggle, 300);
+    window.addEventListener("resize", placeToggle);
 
   }
 
