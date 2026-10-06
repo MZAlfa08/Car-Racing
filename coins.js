@@ -1,5 +1,5 @@
 /* =====================================================
-   COINS.JS - Street Racer 3D
+   COINS.JS - Street Racer 3D  (versi RINGAN)
    -----------------------------------------------------
    Fitur:
    1. Koin emas tersebar di jalan, ambil dengan menabraknya
@@ -9,9 +9,17 @@
    4. Penghitung koin di layar saat balapan
    5. Rincian hadiah di layar hasil
 
+   OPTIMASI:
+   - Semua koin digambar dengan InstancedMesh, jadi hanya
+     2 "draw call" berapa pun jumlah koinnya (sebelumnya
+     tiap koin = 2 objek terpisah).
+   - Tidak membuat / menghapus objek 3D saat balapan
+     (mengurangi patah-patah akibat garbage collection).
+   - Update posisi HUD koin lebih jarang & hanya jika berubah.
+
    File ini TIDAK mengubah file game lain. Ia "membungkus"
    fungsi yang sudah ada (startGame, updateHUD, crash,
-   finishRace, backToHome) lalu menambah fitur koin.
+   finishRace, backToHome).
 
    Harus dimuat SETELAH gamelogic.html (lihat index.html).
 ===================================================== */
@@ -37,8 +45,9 @@
     removeZ: 20,            // koin dihapus setelah lewat titik ini
 
     crashDivisor: 50,       // bonus game over = jarak / angka ini
-    jackpot: 5000           // bonus besar kalau sampai finish
+    jackpot: 5000,          // bonus besar kalau sampai finish
 
+    maxCoins: 64            // batas koin di layar bersamaan
   };
 
 
@@ -46,7 +55,9 @@
      VARIABEL
   ===================================================== */
 
-  let coins = [];            // koin yang sedang ada di jalan
+  /* Data koin: { x, z, rot } -- hanya angka, bukan objek 3D */
+
+  let coins = [];
   let coinCount = 0;         // jumlah koin yang sudah diambil
   let combo = 0;             // koin beruntun (untuk nada suara)
   let comboTimer = 0;
@@ -55,12 +66,13 @@
   let nextGap = 0;
   let lastTime = 0;
 
-  let outerGeo = null;
-  let innerGeo = null;
-  let outerMat = null;
-  let innerMat = null;
+  let outerMesh = null;      // InstancedMesh untuk badan koin
+  let innerMesh = null;      // InstancedMesh untuk lingkaran dalam
+  let dummy = null;
+  let warned = false;
 
   let coinHud = null;
+  let hudKey = "";
 
 
   /* =====================================================
@@ -81,10 +93,6 @@
 
   function isRunning() {
     return typeof gameRunning !== "undefined" && gameRunning === true;
-  }
-
-  function isPaused() {
-    return typeof gamePaused !== "undefined" && gamePaused === true;
   }
 
   function getLanes() {
@@ -117,54 +125,71 @@
 
 
   /* =====================================================
-     MODEL KOIN (dibuat sekali, dipakai ulang)
+     MODEL KOIN (dibuat sekali)
+     Memakai InstancedMesh: 1 model digambar berkali-kali
+     dalam 1 perintah ke GPU.
   ===================================================== */
 
-  function buildAssets() {
+  function ensureMeshes() {
 
-    if (outerGeo) return true;
-
-    if (typeof THREE === "undefined") {
-      console.warn("[coins] THREE.js tidak ditemukan.");
+    if (typeof THREE === "undefined" || typeof scene === "undefined" || !scene) {
       return false;
     }
 
-    /* Silinder tipis, diputar supaya menghadap ke depan */
+    if (typeof THREE.InstancedMesh !== "function") {
 
-    outerGeo = new THREE.CylinderGeometry(0.75, 0.75, 0.18, 20);
-    outerGeo.rotateX(Math.PI / 2);
+      if (!warned) {
+        warned = true;
+        console.warn("[coins] Versi THREE.js terlalu lama (tidak ada InstancedMesh). Koin dimatikan.");
+      }
 
-    innerGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.24, 20);
-    innerGeo.rotateX(Math.PI / 2);
+      return false;
 
-    outerMat = new THREE.MeshBasicMaterial({ color: 0xffb300 });
-    innerMat = new THREE.MeshBasicMaterial({ color: 0xfff1a8 });
+    }
+
+    if (!outerMesh) {
+
+      /* Silinder tipis, diputar supaya menghadap ke depan */
+
+      const outerGeo = new THREE.CylinderGeometry(0.75, 0.75, 0.2, 16);
+      outerGeo.rotateX(Math.PI / 2);
+
+      const innerGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.26, 16);
+      innerGeo.rotateX(Math.PI / 2);
+
+      const outerMat = new THREE.MeshBasicMaterial({ color: 0xffb300 });
+      const innerMat = new THREE.MeshBasicMaterial({ color: 0xfff1a8 });
+
+      outerMesh = new THREE.InstancedMesh(outerGeo, outerMat, CONFIG.maxCoins);
+      innerMesh = new THREE.InstancedMesh(innerGeo, innerMat, CONFIG.maxCoins);
+
+      /* Posisi koin terus berubah, jadi jangan dipotong oleh frustum culling */
+
+      outerMesh.frustumCulled = false;
+      innerMesh.frustumCulled = false;
+
+      outerMesh.count = 0;
+      innerMesh.count = 0;
+
+      dummy = new THREE.Object3D();
+
+    }
+
+    /* Pasang ke scene (dan pasang lagi kalau scene sempat dibersihkan) */
+
+    if (outerMesh.parent !== scene) scene.add(outerMesh);
+    if (innerMesh.parent !== scene) scene.add(innerMesh);
 
     return true;
 
   }
 
-  function addCoin(x, z) {
-
-    const coin = new THREE.Group();
-
-    coin.add(new THREE.Mesh(outerGeo, outerMat));
-    coin.add(new THREE.Mesh(innerGeo, innerMat));
-
-    coin.position.set(x, 1.1, z);
-
-    scene.add(coin);
-    coins.push(coin);
-
-  }
-
   function clearCoins() {
 
-    coins.forEach(function (coin) {
-      if (typeof scene !== "undefined" && scene) scene.remove(coin);
-    });
+    coins.length = 0;
 
-    coins = [];
+    if (outerMesh) outerMesh.count = 0;
+    if (innerMesh) innerMesh.count = 0;
 
   }
 
@@ -180,6 +205,9 @@
     const lanes = getLanes();
 
     const count = randInt(CONFIG.patternSize[0], CONFIG.patternSize[1]);
+
+    if (coins.length + count > CONFIG.maxCoins) return;
+
     const mode = Math.random() < 0.4 ? "diagonal" : "line";
 
     let laneIndex = Math.floor(Math.random() * lanes.length);
@@ -194,9 +222,30 @@
         laneIndex = clamp(laneIndex + dir, 0, lanes.length - 1);
       }
 
-      addCoin(lanes[laneIndex], CONFIG.spawnZ - k * CONFIG.coinSpacing);
+      coins.push({
+        x: lanes[laneIndex],
+        z: CONFIG.spawnZ - k * CONFIG.coinSpacing,
+        rot: 0
+      });
 
     }
+
+  }
+
+
+  /* =====================================================
+     KOIN TERAMBIL
+  ===================================================== */
+
+  function collectCoin() {
+
+    coinCount++;
+    combo++;
+    comboTimer = 0.6;
+
+    if (window.GameAudio) window.GameAudio.play("coin", combo - 1);
+
+    refreshCoinHud();
 
   }
 
@@ -208,9 +257,8 @@
   function updateCoins(speed) {
 
     if (!isRunning() || speed <= 0) return;
-    if (typeof scene === "undefined" || !scene) return;
     if (typeof playerCar === "undefined" || !playerCar) return;
-    if (!buildAssets()) return;
+    if (!ensureMeshes()) return;
 
     /* Hitung selisih waktu antar frame */
 
@@ -235,50 +283,62 @@
       if (comboTimer <= 0) combo = 0;
     }
 
-    /* Gerakkan koin & cek apakah terambil */
+    /* Gerakkan koin, cek terambil, buang yang sudah lewat */
 
     const carX = playerCar.position.x;
+    const move = speed * dt;
 
-    for (let i = coins.length - 1; i >= 0; i--) {
+    let w = 0;
 
-      const coin = coins[i];
+    for (let i = 0; i < coins.length; i++) {
 
-      const prevZ = coin.position.z;
+      const c = coins[i];
 
-      coin.position.z += speed * dt;
-      coin.rotation.y += dt * 4;
+      const prevZ = c.z;
 
-      const z = coin.position.z;
+      c.z += move;
+      c.rot += dt * 4;
 
-      /* Sudah lewat di belakang mobil -> hapus */
+      /* Sudah lewat di belakang mobil -> buang */
 
-      if (z > CONFIG.removeZ) {
-        scene.remove(coin);
-        coins.splice(i, 1);
-        continue;
-      }
-
-      const dx = Math.abs(coin.position.x - carX);
+      if (c.z > CONFIG.removeZ) continue;
 
       /* Cek dengan "melompati" supaya koin tidak terlewat saat ngebut */
 
-      const hitZ = Math.abs(z) < 3 || (prevZ < -3 && z > 3);
+      const hitZ = Math.abs(c.z) < 3 || (prevZ < -3 && c.z > 3);
 
-      if (dx < 1.9 && hitZ) {
-
-        scene.remove(coin);
-        coins.splice(i, 1);
-
-        coinCount++;
-        combo++;
-        comboTimer = 0.6;
-
-        if (window.GameAudio) window.GameAudio.play("coin", combo - 1);
-
-        refreshCoinHud();
-
+      if (hitZ && Math.abs(c.x - carX) < 1.9) {
+        collectCoin();
+        continue;
       }
 
+      coins[w++] = c;
+
+    }
+
+    coins.length = w;
+
+    /* Kirim posisi semua koin ke GPU sekaligus */
+
+    for (let i = 0; i < w; i++) {
+
+      const c = coins[i];
+
+      dummy.position.set(c.x, 1.1, c.z);
+      dummy.rotation.set(0, c.rot, 0);
+      dummy.updateMatrix();
+
+      outerMesh.setMatrixAt(i, dummy.matrix);
+      innerMesh.setMatrixAt(i, dummy.matrix);
+
+    }
+
+    outerMesh.count = w;
+    innerMesh.count = w;
+
+    if (w > 0) {
+      outerMesh.instanceMatrix.needsUpdate = true;
+      innerMesh.instanceMatrix.needsUpdate = true;
     }
 
   }
@@ -317,11 +377,20 @@
 
     if (!coinHud) return;
 
-    coinHud.textContent = "🪙 " + coinCount + "  ·  💰 " + coinMoney();
+    /* Ikon koin dibuat dari CSS (emoji koin tidak tampil di Windows lama) */
+
+    coinHud.innerHTML =
+      '<span style="display:inline-block;width:13px;height:13px;' +
+      'border-radius:50%;background:#ffb300;border:2px solid #fff1a8;' +
+      'vertical-align:-2px;box-sizing:border-box;"></span> ' +
+      coinCount + "  ·  💰 " + coinMoney();
 
   }
 
-  /* Tampil hanya saat balapan, posisinya di bawah kotak HUD */
+  /*
+    Tampil hanya saat balapan, posisinya di bawah kotak HUD.
+    Style hanya ditulis kalau nilainya berubah.
+  */
 
   function updateCoinHudPosition() {
 
@@ -334,20 +403,30 @@
       game &&
       game.classList.contains("active");
 
-    coinHud.style.display = show ? "block" : "none";
+    let left = 8;
+    let top = 90;
 
-    if (!show) return;
+    if (show) {
 
-    const hud = document.getElementById("hud");
+      const hud = document.getElementById("hud");
 
-    if (hud) {
-
-      const r = hud.getBoundingClientRect();
-
-      coinHud.style.left = Math.max(8, r.left) + "px";
-      coinHud.style.top = (r.bottom + 8) + "px";
+      if (hud) {
+        const r = hud.getBoundingClientRect();
+        left = Math.round(Math.max(8, r.left));
+        top = Math.round(r.bottom + 8);
+      }
 
     }
+
+    const key = (show ? "1" : "0") + "|" + left + "|" + top;
+
+    if (key === hudKey) return;
+
+    hudKey = key;
+
+    coinHud.style.display = show ? "block" : "none";
+    coinHud.style.left = left + "px";
+    coinHud.style.top = top + "px";
 
   }
 
@@ -535,7 +614,7 @@
         showGameModal(
           "KOIN DISIMPAN",
           "Kamu membawa pulang 💰 " + coinBonus + " dari koin yang diambil.",
-          "🪙"
+          "⭐"
         );
       }
 
@@ -555,7 +634,7 @@
 
   createCoinHud();
 
-  setInterval(updateCoinHudPosition, 250);
+  setInterval(updateCoinHudPosition, 500);
 
   console.log("Coins.js berhasil dimuat.");
 
