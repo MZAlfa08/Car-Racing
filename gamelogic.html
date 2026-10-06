@@ -1,0 +1,2047 @@
+<script>
+
+/* =====================================================
+   GAME VARIABLES
+===================================================== */
+
+let gameRunning = false;
+let gamePaused = false;
+
+let score = 0;
+let nitro = 100;
+
+let playerX = 0;
+
+let leftPressed = false;
+let rightPressed = false;
+let nitroPressed = false;
+
+let lastEnemySpawn = 0;
+let trainTimer = 8;
+
+
+/* =====================================================
+   GAME LOOP CONTROL
+===================================================== */
+
+let gameLoopStarted = false;
+
+
+/* =====================================================
+   SAFE FUNCTION CHECK
+===================================================== */
+
+function functionExists(name){
+
+  return typeof window[name] === "function";
+
+}
+
+
+/* =====================================================
+   START GAME
+===================================================== */
+
+function startGame(){
+
+  console.log("Starting game...");
+
+
+  /* =================================================
+     STOP GAME LOOP LAMA
+  ================================================= */
+
+  gameRunning = false;
+  gamePaused = false;
+
+
+  /* =================================================
+     TAMPILKAN GAME
+  ================================================= */
+
+  showScreen("game");
+
+
+  /* =================================================
+     INIT THREE.JS
+  ================================================= */
+
+  try{
+
+    /*
+      Jangan membuat THREE.JS berkali-kali
+      kalau sudah tersedia.
+    */
+
+    if(
+      typeof scene === "undefined" ||
+      typeof camera === "undefined" ||
+      typeof renderer === "undefined"
+    ){
+
+      if(functionExists("init3D")){
+
+        init3D();
+
+      }
+      else{
+
+        console.error(
+          "ERROR: fungsi init3D() tidak ditemukan."
+        );
+
+        return;
+
+      }
+
+    }
+
+  }
+  catch(error){
+
+    console.error(
+      "Gagal menjalankan init3D():",
+      error
+    );
+
+    return;
+
+  }
+
+
+  /* =================================================
+     RESIZE
+  ================================================= */
+
+  requestAnimationFrame(() => {
+
+    try{
+
+      if(functionExists("resizeGame")){
+
+        resizeGame();
+
+      }
+
+    }
+    catch(error){
+
+      console.warn(
+        "resizeGame() error:",
+        error
+      );
+
+    }
+
+  });
+
+
+  /* =================================================
+     RESET GAME STATE
+  ================================================= */
+
+  gameRunning = true;
+  gamePaused = false;
+
+  score = 0;
+  nitro = 100;
+
+  playerX = 0;
+
+  leftPressed = false;
+  rightPressed = false;
+  nitroPressed = false;
+
+  lastEnemySpawn = 0;
+  trainTimer = 8;
+
+
+  /* =================================================
+     RESET PAUSE SCREEN
+  ================================================= */
+
+  const pauseScreen =
+    document.getElementById("pauseScreen");
+
+  if(pauseScreen){
+
+    pauseScreen.classList.remove("active");
+
+  }
+
+
+  /* =================================================
+     HAPUS MUSUH LAMA
+  ================================================= */
+
+  if(
+    typeof enemies !== "undefined" &&
+    Array.isArray(enemies)
+  ){
+
+    enemies.forEach(enemy => {
+
+      if(
+        enemy &&
+        typeof scene !== "undefined" &&
+        scene
+      ){
+
+        scene.remove(enemy);
+
+      }
+
+    });
+
+    enemies = [];
+
+  }
+
+
+  /* =================================================
+     HAPUS PARTICLE LAMA
+  ================================================= */
+
+  if(
+    typeof particles !== "undefined" &&
+    Array.isArray(particles)
+  ){
+
+    particles.forEach(particle => {
+
+      if(
+        particle &&
+        typeof scene !== "undefined" &&
+        scene
+      ){
+
+        scene.remove(particle);
+
+      }
+
+    });
+
+    particles = [];
+
+  }
+
+
+  /* =================================================
+     MAP VISUAL
+     
+     PERBAIKAN:
+     applyMapVisuals() sekarang dicek dahulu.
+     
+     Jika fungsi tidak ada, game TIDAK AKAN CRASH.
+  ================================================= */
+
+  try{
+
+    if(functionExists("applyMapVisuals")){
+
+      applyMapVisuals();
+
+    }
+    else{
+
+      console.warn(
+        "applyMapVisuals() tidak ditemukan. Game tetap dilanjutkan."
+      );
+
+    }
+
+  }
+  catch(error){
+
+    console.warn(
+      "applyMapVisuals() gagal:",
+      error
+    );
+
+  }
+
+
+  /* =================================================
+     BUAT DUNIA
+  ================================================= */
+
+  try{
+
+    if(functionExists("createRoad")){
+
+      createRoad();
+
+    }
+    else{
+
+      console.error(
+        "Fungsi createRoad() tidak ditemukan."
+      );
+
+    }
+
+
+    if(functionExists("createScenery")){
+
+      createScenery();
+
+    }
+    else{
+
+      console.warn(
+        "Fungsi createScenery() tidak ditemukan."
+      );
+
+    }
+
+
+    if(functionExists("createTrain")){
+
+      createTrain();
+
+    }
+    else{
+
+      console.warn(
+        "Fungsi createTrain() tidak ditemukan."
+      );
+
+    }
+
+  }
+  catch(error){
+
+    console.error(
+      "Gagal membuat dunia game:",
+      error
+    );
+
+    gameRunning = false;
+
+    return;
+
+  }
+
+
+  /* =================================================
+     HAPUS PLAYER LAMA
+  ================================================= */
+
+  if(
+    typeof playerCar !== "undefined" &&
+    playerCar &&
+    typeof scene !== "undefined"
+  ){
+
+    scene.remove(playerCar);
+
+    playerCar = null;
+
+  }
+
+
+  /* =================================================
+     BUAT PLAYER
+  ================================================= */
+
+  try{
+
+    const car =
+      cars[save.selectedCar];
+
+
+    if(!car){
+
+      console.error(
+        "Mobil yang dipilih tidak ditemukan."
+      );
+
+      gameRunning = false;
+
+      return;
+
+    }
+
+
+    if(!functionExists("createCar")){
+
+      console.error(
+        "Fungsi createCar() tidak ditemukan."
+      );
+
+      gameRunning = false;
+
+      return;
+
+    }
+
+
+    playerCar =
+      createCar(
+        car.color
+      );
+
+
+    if(!playerCar){
+
+      console.error(
+        "createCar() tidak menghasilkan playerCar."
+      );
+
+      gameRunning = false;
+
+      return;
+
+    }
+
+
+    /* =================================================
+       POSISI PLAYER
+    ================================================= */
+
+    playerCar.position.set(
+      0,
+      0,
+      0
+    );
+
+
+    scene.add(
+      playerCar
+    );
+
+  }
+  catch(error){
+
+    console.error(
+      "Gagal membuat mobil player:",
+      error
+    );
+
+    gameRunning = false;
+
+    return;
+
+  }
+
+
+  /* =================================================
+     CAMERA
+  ================================================= */
+
+  if(
+    typeof camera !== "undefined" &&
+    camera
+  ){
+
+    camera.position.set(
+      0,
+      5,
+      10
+    );
+
+
+    camera.lookAt(
+      0,
+      0.5,
+      -18
+    );
+
+  }
+
+
+  /* =================================================
+     CLOCK
+  ================================================= */
+
+  if(
+    typeof clock !== "undefined" &&
+    clock
+  ){
+
+    clock.start();
+
+  }
+
+
+  /* =================================================
+     UPDATE HUD AWAL
+  ================================================= */
+
+  updateHUD(
+    0,
+    0
+  );
+
+
+  /* =================================================
+     MULAI GAME LOOP
+  ================================================= */
+
+  if(!gameLoopStarted){
+
+    gameLoopStarted = true;
+
+    requestAnimationFrame(
+      gameLoop
+    );
+
+  }
+
+
+  console.log(
+    "GAME STARTED"
+  );
+
+}
+
+
+/* =====================================================
+   GAME LOOP
+===================================================== */
+
+function gameLoop(){
+
+  /*
+    Kalau game sudah selesai,
+    jangan terus menjalankan update.
+  */
+
+  if(!gameRunning){
+
+    gameLoopStarted = false;
+
+    return;
+
+  }
+
+
+  requestAnimationFrame(
+    gameLoop
+  );
+
+
+  /* =================================================
+     PAUSE
+  ================================================= */
+
+  if(gamePaused){
+
+    return;
+
+  }
+
+
+  /* =================================================
+     DELTA TIME
+  ================================================= */
+
+  let dt = 0.016;
+
+
+  try{
+
+    if(
+      typeof clock !== "undefined" &&
+      clock
+    ){
+
+      dt =
+        Math.min(
+          clock.getDelta(),
+          0.05
+        );
+
+    }
+
+  }
+  catch(error){
+
+    console.warn(
+      "Clock error:",
+      error
+    );
+
+  }
+
+
+  /* =================================================
+     UPDATE GAME
+  ================================================= */
+
+  try{
+
+    updateGame(
+      dt
+    );
+
+  }
+  catch(error){
+
+    console.error(
+      "ERROR DI updateGame():",
+      error
+    );
+
+    /*
+      Jangan biarkan game terus berjalan
+      dalam kondisi error.
+    */
+
+    gameRunning = false;
+
+    return;
+
+  }
+
+
+  /* =================================================
+     RENDER
+  ================================================= */
+
+  try{
+
+    if(
+      typeof renderer !== "undefined" &&
+      renderer &&
+      typeof scene !== "undefined" &&
+      scene &&
+      typeof camera !== "undefined" &&
+      camera
+    ){
+
+      renderer.render(
+        scene,
+        camera
+      );
+
+    }
+
+  }
+  catch(error){
+
+    console.error(
+      "ERROR RENDER THREE.JS:",
+      error
+    );
+
+    gameRunning = false;
+
+  }
+
+}
+
+
+/* =====================================================
+   PROGRESS KECEPATAN
+===================================================== */
+
+function getSpeedProgress(){
+
+  if(score < 2500){
+
+    return 0;
+
+  }
+
+
+  if(score < 5000){
+
+    return 0.20;
+
+  }
+
+
+  if(score < 8000){
+
+    return 0.40;
+
+  }
+
+
+  if(score < 11000){
+
+    return 0.70;
+
+  }
+
+
+  return 1;
+
+}
+
+
+/* =====================================================
+   TRAFFIC PROGRESS
+===================================================== */
+
+function getTrafficProgress(){
+
+  if(score < 2000){
+
+    return 0;
+
+  }
+
+
+  if(score < 4500){
+
+    return 0.20;
+
+  }
+
+
+  if(score < 7000){
+
+    return 0.40;
+
+  }
+
+
+  if(score < 10000){
+
+    return 0.70;
+
+  }
+
+
+  return 1;
+
+}
+
+
+/* =====================================================
+   UPDATE GAME
+===================================================== */
+
+function updateGame(dt){
+
+  /* =================================================
+     CEK PLAYER
+  ================================================= */
+
+  if(
+    typeof playerCar === "undefined" ||
+    !playerCar
+  ){
+
+    return;
+
+  }
+
+
+  /* =================================================
+     CEK DATA MOBIL / MAP
+  ================================================= */
+
+  const car =
+    cars[save.selectedCar];
+
+
+  const map =
+    maps[save.selectedMap];
+
+
+  if(!car || !map){
+
+    console.error(
+      "Data mobil atau map tidak ditemukan."
+    );
+
+    return;
+
+  }
+
+
+  /* =================================================
+     PROGRESS
+  ================================================= */
+
+  const speedProgress =
+    getSpeedProgress();
+
+
+  const trafficProgress =
+    getTrafficProgress();
+
+
+  /* =================================================
+     SPEED DASAR
+  ================================================= */
+
+  let speed =
+    map.baseSpeed;
+
+
+  /* =================================================
+     PENGARUH MOBIL
+  ================================================= */
+
+  speed +=
+    car.speed *
+    1.4;
+
+
+  speed +=
+    save.upgrades.speed *
+    1.5;
+
+
+  /* =================================================
+     PENINGKATAN BERTAHAP
+  ================================================= */
+
+  let progressiveMultiplier =
+    1 +
+    speedProgress *
+    0.85;
+
+
+  speed *=
+    progressiveMultiplier;
+
+
+  /* =================================================
+     NITRO
+  ================================================= */
+
+  if(
+    nitroPressed &&
+    nitro > 0
+  ){
+
+    speed *= 1.8;
+
+
+    nitro -=
+      35 * dt;
+
+
+    if(functionExists("updateNitroEffect")){
+
+      updateNitroEffect(true);
+
+    }
+
+  }
+  else{
+
+    nitro +=
+      8 * dt;
+
+
+    if(functionExists("updateNitroEffect")){
+
+      updateNitroEffect(false);
+
+    }
+
+  }
+
+
+  /* =================================================
+     BATAS NITRO
+  ================================================= */
+
+  if(
+    typeof THREE !== "undefined" &&
+    THREE.MathUtils
+  ){
+
+    nitro =
+      THREE.MathUtils.clamp(
+        nitro,
+        0,
+        100
+      );
+
+  }
+  else{
+
+    nitro =
+      Math.max(
+        0,
+        Math.min(
+          100,
+          nitro
+        )
+      );
+
+  }
+
+
+  /* =================================================
+     SCORE / DISTANCE
+  ================================================= */
+
+  score +=
+    speed *
+    dt *
+    6;
+
+
+  /* =================================================
+     STEERING
+  ================================================= */
+
+  const handling =
+    7 +
+    car.handling +
+    save.upgrades.handling;
+
+
+  if(leftPressed){
+
+    playerX -=
+      handling *
+      dt;
+
+  }
+
+
+  if(rightPressed){
+
+    playerX +=
+      handling *
+      dt;
+
+  }
+
+
+  /* =================================================
+     BATAS JALAN
+  ================================================= */
+
+  if(
+    typeof THREE !== "undefined" &&
+    THREE.MathUtils
+  ){
+
+    playerX =
+      THREE.MathUtils.clamp(
+        playerX,
+        -6.2,
+        6.2
+      );
+
+  }
+  else{
+
+    playerX =
+      Math.max(
+        -6.2,
+        Math.min(
+          6.2,
+          playerX
+        )
+      );
+
+  }
+
+
+  /* =================================================
+     PLAYER POSISI
+  ================================================= */
+
+  const targetX =
+    playerX;
+
+
+  if(
+    typeof THREE !== "undefined" &&
+    THREE.MathUtils
+  ){
+
+    playerCar.position.x =
+      THREE.MathUtils.lerp(
+        playerCar.position.x,
+        targetX,
+        0.18
+      );
+
+  }
+  else{
+
+    playerCar.position.x =
+      playerCar.position.x +
+      (
+        targetX -
+        playerCar.position.x
+      ) *
+      0.18;
+
+  }
+
+
+  /* =================================================
+     LEAN
+  ================================================= */
+
+  let lean = 0;
+
+
+  if(leftPressed){
+
+    lean = 0.08;
+
+  }
+
+
+  if(rightPressed){
+
+    lean = -0.08;
+
+  }
+
+
+  if(
+    typeof THREE !== "undefined" &&
+    THREE.MathUtils
+  ){
+
+    playerCar.rotation.z =
+      THREE.MathUtils.lerp(
+        playerCar.rotation.z,
+        lean,
+        0.12
+      );
+
+  }
+
+
+  /* =================================================
+     ROAD
+  ================================================= */
+
+  if(
+    typeof roadSegments !== "undefined" &&
+    Array.isArray(roadSegments)
+  ){
+
+    roadSegments.forEach(
+      segment => {
+
+        if(!segment){
+
+          return;
+
+        }
+
+
+        segment.position.z +=
+          speed *
+          dt;
+
+
+        if(
+          segment.position.z > 40
+        ){
+
+          segment.position.z -=
+            480;
+
+        }
+
+
+        /*
+          Jalan tetap lurus.
+        */
+
+        segment.position.x =
+          0;
+
+      }
+    );
+
+  }
+
+
+  /* =================================================
+     SCENERY
+  ================================================= */
+
+  if(
+    typeof scenery !== "undefined" &&
+    Array.isArray(scenery)
+  ){
+
+    scenery.forEach(
+      object => {
+
+        if(!object){
+
+          return;
+
+        }
+
+
+        object.position.z +=
+          speed *
+          dt;
+
+
+        if(
+          object.position.z > 40
+        ){
+
+          object.position.z -=
+            430;
+
+
+          if(
+            functionExists(
+              "repositionScenery"
+            )
+          ){
+
+            repositionScenery(
+              object
+            );
+
+          }
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /* =================================================
+     TRAFFIC
+  ================================================= */
+
+  if(
+    typeof enemies !== "undefined" &&
+    Array.isArray(enemies)
+  ){
+
+    enemies.forEach(
+      enemy => {
+
+        if(!enemy){
+
+          return;
+
+        }
+
+
+        enemy.position.z +=
+          speed *
+          dt *
+          0.75;
+
+
+        /* =================================================
+           JALAN LURUS
+        ================================================= */
+
+        const lane =
+          typeof enemy.userData?.laneOffset ===
+          "number"
+          ?
+          enemy.userData.laneOffset
+          :
+          0;
+
+
+        if(
+          typeof THREE !== "undefined" &&
+          THREE.MathUtils
+        ){
+
+          enemy.position.x =
+            THREE.MathUtils.lerp(
+              enemy.position.x,
+              lane,
+              0.08
+            );
+
+        }
+
+
+        /* =================================================
+           RESET
+        ================================================= */
+
+        if(
+          enemy.position.z > 30
+        ){
+
+          if(
+            functionExists(
+              "resetEnemy"
+            )
+          ){
+
+            resetEnemy(
+              enemy
+            );
+
+          }
+
+        }
+
+
+        /* =================================================
+           COLLISION
+        ================================================= */
+
+        const dx =
+          Math.abs(
+            enemy.position.x -
+            playerCar.position.x
+          );
+
+
+        const dz =
+          Math.abs(
+            enemy.position.z
+          );
+
+
+        if(
+          dx < 2.1 &&
+          dz < 3.2
+        ){
+
+          crash(
+            enemy
+          );
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /* =================================================
+     SPAWN TRAFFIC
+  ================================================= */
+
+  lastEnemySpawn +=
+    dt;
+
+
+  const maxTraffic =
+    Math.floor(
+
+      2 +
+
+      map.maxTraffic *
+      trafficProgress
+
+    );
+
+
+  const minimumTraffic =
+    Math.max(
+      2,
+      Math.floor(
+        2 +
+        map.maxTraffic *
+        trafficProgress
+      )
+    );
+
+
+  let spawnInterval =
+    map.spawnTime;
+
+
+  /* =================================================
+     SEMAKIN JAUH = SPAWN SEMAKIN CEPAT
+  ================================================= */
+
+  spawnInterval *=
+    1 -
+    trafficProgress *
+    0.35;
+
+
+  /* =================================================
+     SPAWN NORMAL
+  ================================================= */
+
+  if(
+    lastEnemySpawn >
+      spawnInterval &&
+    enemies.length <
+      maxTraffic
+  ){
+
+    if(functionExists("createEnemy")){
+
+      createEnemy();
+
+
+      const enemy =
+        enemies[
+          enemies.length - 1
+        ];
+
+
+      if(enemy){
+
+        const lanes = [
+
+          -5,
+          -2.5,
+          0,
+          2.5,
+          5
+
+        ];
+
+
+        enemy.userData.laneOffset =
+          lanes[
+            Math.floor(
+              Math.random() *
+              lanes.length
+            )
+          ];
+
+
+        enemy.position.x =
+          enemy.userData.laneOffset;
+
+      }
+
+    }
+
+
+    lastEnemySpawn =
+      0;
+
+  }
+
+
+  /* =================================================
+     PASTIKAN TRAFFIC TETAP BERKEMBANG
+  ================================================= */
+
+  if(
+    enemies.length <
+      minimumTraffic &&
+    enemies.length <
+      map.maxTraffic
+  ){
+
+    if(functionExists("createEnemy")){
+
+      createEnemy();
+
+
+      const enemy =
+        enemies[
+          enemies.length - 1
+        ];
+
+
+      if(enemy){
+
+        const lanes = [
+
+          -5,
+          -2.5,
+          0,
+          2.5,
+          5
+
+        ];
+
+
+        enemy.userData.laneOffset =
+          lanes[
+            Math.floor(
+              Math.random() *
+              lanes.length
+            )
+          ];
+
+
+        enemy.position.x =
+          enemy.userData.laneOffset;
+
+      }
+
+    }
+
+  }
+
+
+  /* =================================================
+     TRAIN
+  ================================================= */
+
+  trainTimer -=
+    dt;
+
+
+  if(
+    trainTimer <= 0
+  ){
+
+    if(functionExists("startTrain")){
+
+      startTrain();
+
+    }
+
+
+    trainTimer =
+      12 +
+      Math.random() *
+      8;
+
+  }
+
+
+  if(functionExists("updateTrain")){
+
+    updateTrain(
+      dt
+    );
+
+  }
+
+
+  /* =================================================
+     CAMERA
+  ================================================= */
+
+  if(
+    typeof camera !== "undefined" &&
+    camera &&
+    typeof THREE !== "undefined" &&
+    THREE.MathUtils
+  ){
+
+    camera.position.x =
+      THREE.MathUtils.lerp(
+        camera.position.x,
+        playerCar.position.x *
+        0.45,
+        0.05
+      );
+
+
+    camera.lookAt(
+      playerCar.position.x *
+      0.2,
+      0.5,
+      -18
+    );
+
+  }
+
+
+  /* =================================================
+     HUD
+  ================================================= */
+
+  updateHUD(
+    speed,
+    score
+  );
+
+
+  /* =================================================
+     FINISH
+  ================================================= */
+
+  if(
+    score >= 15000
+  ){
+
+    finishRace();
+
+  }
+
+}
+
+
+/* =====================================================
+   UPDATE HUD
+===================================================== */
+
+function updateHUD(
+  speed,
+  distance
+){
+
+  /* =================================================
+     SPEED
+  ================================================= */
+
+  const speedText =
+    document.getElementById(
+      "speedText"
+    );
+
+
+  if(speedText){
+
+    speedText.textContent =
+      Math.floor(
+        speed * 8
+      );
+
+  }
+
+
+  /* =================================================
+     DISTANCE
+  ================================================= */
+
+  const scoreText =
+    document.getElementById(
+      "scoreText"
+    );
+
+
+  if(scoreText){
+
+    scoreText.textContent =
+      Math.floor(
+        distance
+      );
+
+  }
+
+
+  /* =================================================
+     NITRO
+  ================================================= */
+
+  const nitroFill =
+    document.getElementById(
+      "nitroFill"
+    );
+
+
+  if(nitroFill){
+
+    nitroFill.style.width =
+      nitro +
+      "%";
+
+  }
+
+
+  /* =================================================
+     LAP
+  ================================================= */
+
+  const lap =
+    Math.min(
+      3,
+      Math.floor(
+        score /
+        5000
+      ) + 1
+    );
+
+
+  const lapText =
+    document.getElementById(
+      "lapText"
+    );
+
+
+  if(lapText){
+
+    lapText.textContent =
+      lap +
+      " / 3";
+
+  }
+
+}
+
+
+/* =====================================================
+   REPOSITION SCENERY
+===================================================== */
+
+function repositionScenery(object){
+
+  if(
+    !object ||
+    typeof maps === "undefined" ||
+    !maps[save.selectedMap]
+  ){
+
+    return;
+
+  }
+
+
+  const map =
+    maps[save.selectedMap];
+
+
+  if(
+    map.environment === "city"
+  ){
+
+    object.position.x =
+      Math.random() > 0.5
+      ?
+      9 + Math.random() * 22
+      :
+      -9 - Math.random() * 22;
+
+  }
+
+
+  if(
+    map.environment === "desert"
+  ){
+
+    object.position.x =
+      Math.random() > 0.5
+      ?
+      10 + Math.random() * 25
+      :
+      -10 - Math.random() * 25;
+
+  }
+
+
+  if(
+    map.environment === "night"
+  ){
+
+    object.position.x =
+      Math.random() > 0.5
+      ?
+      9 + Math.random() * 25
+      :
+      -9 - Math.random() * 25;
+
+  }
+
+}
+
+
+/* =====================================================
+   RESET ENEMY
+===================================================== */
+
+function resetEnemy(enemy){
+
+  if(!enemy){
+
+    return;
+
+  }
+
+
+  enemy.position.z =
+    -180 -
+    Math.random() *
+    100;
+
+
+  const lanes = [
+
+    -5,
+    -2.5,
+    0,
+    2.5,
+    5
+
+  ];
+
+
+  if(!enemy.userData){
+
+    enemy.userData = {};
+
+  }
+
+
+  enemy.userData.laneOffset =
+    lanes[
+      Math.floor(
+        Math.random() *
+        lanes.length
+      )
+    ];
+
+
+  enemy.position.x =
+    enemy.userData.laneOffset;
+
+}
+
+
+/* =====================================================
+   COLLISION / CRASH
+===================================================== */
+
+function crash(enemy){
+
+  if(!gameRunning){
+
+    return;
+
+  }
+
+
+  gameRunning =
+    false;
+
+
+  gamePaused =
+    false;
+
+
+  /* =================================================
+     HENTIKAN INPUT
+  ================================================= */
+
+  leftPressed = false;
+  rightPressed = false;
+  nitroPressed = false;
+
+
+  /* =================================================
+     JAUHKAN MUSUH
+  ================================================= */
+
+  if(enemy){
+
+    enemy.position.z =
+      999;
+
+  }
+
+
+  /* =================================================
+     VIBRATION
+  ================================================= */
+
+  if(
+    navigator.vibrate
+  ){
+
+    navigator.vibrate([
+      150,
+      80,
+      250
+    ]);
+
+  }
+
+
+  /* =================================================
+     GAME OVER
+  ================================================= */
+
+  const resultTitle =
+    document.getElementById(
+      "resultTitle"
+    );
+
+
+  if(resultTitle){
+
+    resultTitle.textContent =
+      "💥 GAME OVER";
+
+  }
+
+
+  const resultScore =
+    document.getElementById(
+      "resultScore"
+    );
+
+
+  if(resultScore){
+
+    resultScore.textContent =
+      "Jarak: " +
+      Math.floor(
+        score
+      );
+
+  }
+
+
+  const rewardMoney =
+    document.getElementById(
+      "rewardMoney"
+    );
+
+
+  if(rewardMoney){
+
+    rewardMoney.textContent =
+      "0";
+
+  }
+
+
+  /* =================================================
+     HASIL
+  ================================================= */
+
+  setTimeout(
+    () => {
+
+      showScreen(
+        "result"
+      );
+
+    },
+    500
+  );
+
+}
+
+
+/* =====================================================
+   FINISH
+===================================================== */
+
+function finishRace(){
+
+  if(!gameRunning){
+
+    return;
+
+  }
+
+
+  gameRunning =
+    false;
+
+
+  /* =================================================
+     HENTIKAN INPUT
+  ================================================= */
+
+  leftPressed = false;
+  rightPressed = false;
+  nitroPressed = false;
+
+
+  /* =================================================
+     REWARD
+  ================================================= */
+
+  const reward =
+    1500 +
+    Math.floor(
+      score / 20
+    );
+
+
+  save.money +=
+    reward;
+
+
+  /* =================================================
+     SAVE
+  ================================================= */
+
+  if(functionExists("saveGame")){
+
+    saveGame();
+
+  }
+
+
+  /* =================================================
+     HASIL
+  ================================================= */
+
+  const rewardMoney =
+    document.getElementById(
+      "rewardMoney"
+    );
+
+
+  if(rewardMoney){
+
+    rewardMoney.textContent =
+      reward;
+
+  }
+
+
+  const resultScore =
+    document.getElementById(
+      "resultScore"
+    );
+
+
+  if(resultScore){
+
+    resultScore.textContent =
+      "Jarak: " +
+      Math.floor(
+        score
+      );
+
+  }
+
+
+  const resultTitle =
+    document.getElementById(
+      "resultTitle"
+    );
+
+
+  if(resultTitle){
+
+    resultTitle.textContent =
+      "🏆 MENANG!";
+
+  }
+
+
+  /* =================================================
+     SHOW RESULT
+  ================================================= */
+
+  showScreen(
+    "result"
+  );
+
+}
+
+
+/* =====================================================
+   PAUSE
+===================================================== */
+
+function togglePause(){
+
+  if(
+    !gameRunning
+  ){
+
+    return;
+
+  }
+
+
+  gamePaused =
+    !gamePaused;
+
+
+  const pause =
+    document.getElementById(
+      "pauseScreen"
+    );
+
+
+  if(!pause){
+
+    return;
+
+  }
+
+
+  if(gamePaused){
+
+    pause.classList.add(
+      "active"
+    );
+
+  }
+  else{
+
+    pause.classList.remove(
+      "active"
+    );
+
+
+    if(
+      typeof clock !== "undefined" &&
+      clock
+    ){
+
+      clock.start();
+
+    }
+
+  }
+
+}
+
+
+/* =====================================================
+   BACK HOME
+===================================================== */
+
+function backToHome(){
+
+  /* =================================================
+     STOP GAME
+  ================================================= */
+
+  gameRunning =
+    false;
+
+
+  gamePaused =
+    false;
+
+
+  /* =================================================
+     STOP INPUT
+  ================================================= */
+
+  leftPressed = false;
+  rightPressed = false;
+  nitroPressed = false;
+
+
+  /* =================================================
+     HIDE PAUSE
+  ================================================= */
+
+  const pauseScreen =
+    document.getElementById(
+      "pauseScreen"
+    );
+
+
+  if(pauseScreen){
+
+    pauseScreen.classList.remove(
+      "active"
+    );
+
+  }
+
+
+  /* =================================================
+     HOME
+  ================================================= */
+
+  showScreen(
+    "menu"
+  );
+
+}
+
+
+/* =====================================================
+   DEBUG INFORMATION
+===================================================== */
+
+console.log(
+  "GameLogic berhasil dimuat."
+);
+
+</script>
