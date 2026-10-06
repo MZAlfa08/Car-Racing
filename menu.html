@@ -626,6 +626,45 @@ function closeGameModal(){
 
 
 /* =========================================================
+   GESER DAFTAR KARTU (MOBILE)
+   Menaruh kartu yang dipilih di tengah layar
+========================================================= */
+
+function scrollToSelected(listId){
+
+  const list =
+    document.getElementById(listId);
+
+
+  /* Layar sedang tersembunyi -> lewati */
+
+  if(!list || list.clientWidth === 0)
+    return;
+
+
+  const selected =
+    list.querySelector(".card.selected");
+
+
+  if(!selected)
+    return;
+
+
+  const listBox =
+    list.getBoundingClientRect();
+
+  const cardBox =
+    selected.getBoundingClientRect();
+
+
+  list.scrollLeft +=
+    (cardBox.left + cardBox.width / 2) -
+    (listBox.left + listBox.width / 2);
+
+}
+
+
+/* =========================================================
    MENU
 ========================================================= */
 
@@ -637,6 +676,8 @@ function showGarage(){
     "garage"
   );
 
+  scrollToSelected("carList");
+
 }
 
 
@@ -647,6 +688,8 @@ function showMaps(){
   showScreen(
     "maps"
   );
+
+  scrollToSelected("mapList");
 
 }
 
@@ -929,6 +972,9 @@ function renderCars(){
     }
   );
 
+
+  scrollToSelected("carList");
+
 }
 
 
@@ -1177,6 +1223,9 @@ function renderMaps(){
 
     }
   );
+
+
+  scrollToSelected("mapList");
 
 }
 
