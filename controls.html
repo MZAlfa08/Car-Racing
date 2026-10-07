@@ -99,6 +99,16 @@ document.addEventListener(
 
 
     if(
+      e.key === "ArrowDown" ||
+      e.key.toLowerCase() === "s"
+    ){
+
+      brakePressed = true;
+
+    }
+
+
+    if(
       e.code === "Space"
     ){
 
@@ -130,6 +140,16 @@ document.addEventListener(
     ){
 
       rightPressed = false;
+
+    }
+
+
+    if(
+      e.key === "ArrowDown" ||
+      e.key.toLowerCase() === "s"
+    ){
+
+      brakePressed = false;
 
     }
 
@@ -215,6 +235,30 @@ holdButton(
   () => {
 
     nitroPressed = false;
+
+  }
+
+);
+
+/* =====================================================
+   BRAKE
+===================================================== */
+
+holdButton(
+
+  document.getElementById(
+    "brakeBtn"
+  ),
+
+  () => {
+
+    brakePressed = true;
+
+  },
+
+  () => {
+
+    brakePressed = false;
 
   }
 
