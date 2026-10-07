@@ -563,6 +563,14 @@ button {
   font-size: 16px;
 }
 
+.control.brake {
+
+  background:
+    rgba(220,38,38,.85);
+
+  font-size: 13px;
+}
+
 .control:active {
 
   transform:
