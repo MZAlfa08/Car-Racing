@@ -3,13 +3,28 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html,
 body {
+  width: 100%;
+  min-height: 100%;
   margin: 0;
-  overflow: hidden;
-  font-family: Arial, sans-serif;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   background: #050505;
+}
+
+body {
+  font-family: Arial, sans-serif;
   color: white;
   user-select: none;
+}
+
+body.game-active {
+  overflow: hidden;
+  touch-action: none;
 }
 
 button {
@@ -45,7 +60,9 @@ button {
       #030712 100%
     );
 
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .menu-content {
