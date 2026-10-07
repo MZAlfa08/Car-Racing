@@ -30,6 +30,8 @@ let playerX = 0;
 let leftPressed = false;
 let rightPressed = false;
 let nitroPressed = false;
+let brakePressed = false;
+let brakeFactor = 1;
 
 let lastEnemySpawn = 0;
 let trainTimer = 8;
@@ -115,6 +117,8 @@ function startGame() {
   leftPressed = false;
   rightPressed = false;
   nitroPressed = false;
+  brakePressed = false;
+  brakeFactor = 1;
 
   lastEnemySpawn = 0;
   trainTimer = 8;
@@ -326,9 +330,28 @@ speed *= SPEED_BOOST;
 /* Bonus berdasarkan tingkat kesulitan map */
 speed *= 1 + (map.difficulty - 1) * MAP_DIFFICULTY_BONUS;
 
+    /* ---------- BRAKE ---------- */
+
+  const brakePower = car.brake + save.upgrades.brake;
+
+  const brakeRate = 0.8 + brakePower * 0.25;
+
+  const minBrakeFactor = clampVal(0.45 - brakePower * 0.04, 0.12, 0.45);
+
+  if (brakePressed) {
+    brakeFactor -= brakeRate * dt;
+  } else {
+    brakeFactor += 0.7 * dt;
+  }
+
+  brakeFactor = clampVal(brakeFactor, minBrakeFactor, 1);
+
+  speed *= brakeFactor;
+
+
   /* ---------- NITRO ---------- */
 
-  if (nitroPressed && nitro > 0) {
+  if (nitroPressed && nitro > 0 && !brakePressed) {
 
     speed *= NITRO_MULT;
     nitro -= 35 * dt;
@@ -569,6 +592,7 @@ function crash(enemy) {
   leftPressed = false;
   rightPressed = false;
   nitroPressed = false;
+  brakePressed = false;
 
   if (enemy) enemy.position.z = 999;
 
@@ -601,6 +625,7 @@ function finishRace() {
   leftPressed = false;
   rightPressed = false;
   nitroPressed = false;
+  brakePressed = false;
 
   const reward = 1500 + Math.floor(score / 20);
 
@@ -658,6 +683,7 @@ function backToHome() {
   leftPressed = false;
   rightPressed = false;
   nitroPressed = false;
+   brakePressed = false;
 
   const pauseScreen = document.getElementById("pauseScreen");
   if (pauseScreen) pauseScreen.classList.remove("active");
